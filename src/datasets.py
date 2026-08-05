@@ -278,7 +278,66 @@ class REUTERS(MyDataset):
         pickle.dump({"data": x, "label": y}, outfile, protocol=4)
         outfile.close()
 
+class PairTensorDatasetWrapper(TensorDataset):
+    """Like TensorDatasetWrapper, but carries a third tensor: the pair
+    label z (1 = same class, 0 = different). TensorDataset already
+    returns a 3-tuple per __getitem__ when given 3 tensors, which matches
+    ClusterNetModel's `batch[0].ndim == 3 -> x, y, z = batch` branch."""
+    def __init__(self, data, labels, pair_labels):
+        super().__init__(data, labels, pair_labels)
+        self.data = data
+        self.targets = labels
+        self.pair_labels = pair_labels
 
+
+class CustomPairDataset(MyDataset):
+    """Same on-disk convention as CustomDataset, plus a
+    train_pair_labels.pt / test_pair_labels.pt tensor of same/different
+    labels. Expects train_data.pt shaped (N, 2, D) -- [anchor, partner]."""
+    def __init__(self, args):
+        super().__init__(args)
+        self.transformer = transforms.Compose([transforms.ToTensor()])
+        self._data_dim = 0
+
+    def _load_and_transform(self, codes_path):
+        codes = torch.Tensor(torch.load(codes_path))  # (N, 2, D)
+        if self.args.transform_input_data:
+            n, p, d = codes.shape
+            flat = transform_embeddings(self.args.transform_input_data, codes.view(n * p, d))
+            codes = flat.view(n, p, d)
+        return codes
+
+    def get_train_data(self):
+        train_codes = self._load_and_transform(os.path.join(self.data_dir, "train_data.pt"))
+        if self.args.use_labels_for_eval:
+            train_labels = torch.load(os.path.join(self.data_dir, "train_labels.pt"))
+        else:
+            train_labels = torch.zeros((train_codes.size()[0]))
+        train_pair_labels = torch.load(os.path.join(self.data_dir, "train_pair_labels.pt"))
+
+        self._data_dim = train_codes.size()[-1]  # last dim, not [1] -- fixes the (N,2,D) bug
+
+        train_set = PairTensorDatasetWrapper(train_codes, train_labels, train_pair_labels)
+        del train_codes, train_labels, train_pair_labels
+        return train_set
+
+    def get_test_data(self):
+        try:
+            test_codes = self._load_and_transform(os.path.join(self.data_dir, "test_data.pt"))
+            if self.args.use_labels_for_eval:
+                test_labels = torch.load(os.path.join(self.data_dir, "test_labels.pt"))
+            else:
+                test_labels = torch.zeros((test_codes.size()[0]))
+            test_pair_labels = torch.load(os.path.join(self.data_dir, "test_pair_labels.pt"))
+        except FileNotFoundError:
+            print("Test data not found! running only with train data")
+            return PairTensorDatasetWrapper(torch.empty(0), torch.empty(0), torch.empty(0))
+
+        test_set = PairTensorDatasetWrapper(test_codes, test_labels, test_pair_labels)
+        del test_codes, test_labels, test_pair_labels
+        return test_set
+
+        
 class GMM_dataset(MyDataset):
     "Synthetic data for visualizations."
 

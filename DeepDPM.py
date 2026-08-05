@@ -13,7 +13,7 @@ import pytorch_lightning as pl
 from sklearn.metrics import normalized_mutual_info_score as NMI
 from sklearn.metrics import adjusted_rand_score as ARI
 import numpy as np
-
+from src.datasets import CustomDataset, CustomPairDataset, GMM_dataset
 from src.datasets import CustomDataset
 from src.datasets import GMM_dataset
 from src.clustering_models.clusternet_modules.clusternetasmodel import ClusterNetModel
@@ -81,6 +81,10 @@ def run_on_embeddings_hyperparams(parent_parser):
     parser.add_argument(
         "--init_k", default=1, type=int, help="number of initial clusters"
     )
+    parser.add_argument("--contrastive_weight", type=float, default=0.0)
+    parser.add_argument("--contrastive_margin", type=float, default=1.0)
+    parser.add_argument("--subcluster_contrastive_weight", type=float, default=0.0)
+    parser.add_argument("--subcluster_contrastive_margin", type=float, default=1.0)
     parser.add_argument(
         "--clusternet_hidden",
         type=int,
@@ -384,6 +388,8 @@ def train_cluster_net():
     
     if args.dataset == "synthetic":
         dataset_obj = GMM_dataset(args)
+    elif args.dataset == "custom_pair":
+        dataset_obj = CustomPairDataset(args)
     else:
         dataset_obj = CustomDataset(args)
     train_loader, val_loader = dataset_obj.get_loaders()
@@ -428,6 +434,8 @@ def train_cluster_net():
     trainer.fit(model, train_loader, val_loader)
 
     print("Finished training!")
+    history_path = os.path.join("logs", args.exp_name, "training_history.png")
+    model.plot_training_history(save_path=history_path)
     # evaluate last model
     dataset = dataset_obj.get_train_data()
     data = dataset.data
