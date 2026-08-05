@@ -102,27 +102,60 @@ def parse_log(log_path):
     }
 
 
+def compute_convergence(run, target_k=None, target_acc=None):
+    """Finds the first epoch at which K and/or ACC reach the given targets.
+
+    Returns a dict with 'k_epoch' and 'acc_epoch' (each an int epoch number
+    or None if the target was never reached in the logged epochs). This is
+    the actual "how fast did it get there" measure -- final-epoch numbers
+    alone don't tell you whether a run reached a good clustering at epoch
+    80 and held it, or only scraped past the target on the very last epoch.
+    """
+    result = {"k_epoch": None, "acc_epoch": None}
+
+    if target_k is not None:
+        for epoch, k in zip(run["epochs"], run["k"]):
+            if k >= target_k:
+                result["k_epoch"] = epoch
+                break
+
+    if target_acc is not None:
+        for epoch, acc in zip(run["epochs"], run["acc"]):
+            if acc >= target_acc:
+                result["acc_epoch"] = epoch
+                break
+
+    return result
+
+
 # ---------------------------------------------------------------------------
 # Plotting + summary
 # ---------------------------------------------------------------------------
 def plot_comparison(baseline, treatment, save_path="comparison_plot.png",
                      baseline_label="Baseline (contrastive_weight=0)",
-                     treatment_label="Treatment"):
+                     treatment_label="Treatment",
+                     baseline_conv=None, treatment_conv=None, target_k=None):
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
     ax = axes[0]
     ax.step(baseline["epochs"], baseline["k"], where="post", label=baseline_label, color="tab:gray")
     ax.step(treatment["epochs"], treatment["k"], where="post", label=treatment_label, color="tab:blue")
+    if target_k is not None:
+        ax.axhline(target_k, color="black", linestyle=":", linewidth=1, alpha=0.6, label=f"target K={target_k}")
+    if baseline_conv and baseline_conv.get("k_epoch") is not None:
+        ax.axvline(baseline_conv["k_epoch"], color="tab:gray", linestyle="--", linewidth=1, alpha=0.7)
+    if treatment_conv and treatment_conv.get("k_epoch") is not None:
+        ax.axvline(treatment_conv["k_epoch"], color="tab:blue", linestyle="--", linewidth=1, alpha=0.7)
     ax.set_xlabel("Epoch"); ax.set_ylabel("K (number of clusters)")
     ax.set_title("Cluster count over training")
-    ax.legend(); ax.grid(alpha=0.3)
+    ax.legend(fontsize=8); ax.grid(alpha=0.3)
 
     ax = axes[1]
     ax.plot(baseline["epochs"], baseline["nmi"], label=baseline_label, color="tab:gray", marker="o", markersize=3)
     ax.plot(treatment["epochs"], treatment["nmi"], label=treatment_label, color="tab:blue", marker="o", markersize=3)
     ax.set_xlabel("Epoch"); ax.set_ylabel("NMI")
     ax.set_title("NMI over training")
-    ax.legend(); ax.grid(alpha=0.3)
+    ax.legend(fontsize=8); ax.grid(alpha=0.3)
 
     plt.suptitle("Baseline vs. Treatment", fontsize=14, fontweight="bold")
     plt.tight_layout()
@@ -165,7 +198,8 @@ def plot_final_bars(baseline, treatment, save_path="comparison_final_bars.png",
     print(f"Final-metrics bar chart saved to: {save_path}")
 
 
-def print_summary(baseline, treatment, baseline_label="Baseline", treatment_label="Treatment"):
+def print_summary(baseline, treatment, baseline_label="Baseline", treatment_label="Treatment",
+                   baseline_conv=None, treatment_conv=None, target_k=None, target_acc=None):
     print("\n" + "=" * 60)
     print("SUMMARY")
     print("=" * 60)
@@ -181,6 +215,22 @@ def print_summary(baseline, treatment, baseline_label="Baseline", treatment_labe
         print("Final summary line missing from one or both logs -- "
               "check that training completed and printed the final "
               "'NMI: .., ARI: .., acc: .., final K: ..' line.")
+
+    if (target_k is not None or target_acc is not None) and baseline_conv and treatment_conv:
+        print("-" * len(header))
+        print("CONVERGENCE SPEED (first epoch reaching target)")
+        if target_k is not None:
+            b_e = baseline_conv["k_epoch"]
+            t_e = treatment_conv["k_epoch"]
+            b_str = f"epoch {b_e}" if b_e is not None else "not reached"
+            t_str = f"epoch {t_e}" if t_e is not None else "not reached"
+            print(f"{'K>=' + str(target_k):<10}{b_str:>20}{t_str:>20}")
+        if target_acc is not None:
+            b_e = baseline_conv["acc_epoch"]
+            t_e = treatment_conv["acc_epoch"]
+            b_str = f"epoch {b_e}" if b_e is not None else "not reached"
+            t_str = f"epoch {t_e}" if t_e is not None else "not reached"
+            print(f"{'ACC>=' + str(target_acc):<10}{b_str:>20}{t_str:>20}")
     print("=" * 60)
 
 
@@ -206,6 +256,10 @@ def main():
     parser.add_argument("--deepdpm_script", type=str, default="DeepDPM.py")
     parser.add_argument("--extra_args", type=str, default="--use_labels_for_eval --offline",
                          help="Extra args appended verbatim to both commands.")
+    parser.add_argument("--target_k", type=int, default=None,
+                         help="If set, reports the first epoch each run's K reaches this value (convergence speed).")
+    parser.add_argument("--target_acc", type=float, default=None,
+                         help="If set, reports the first epoch each run's ACC reaches this value (convergence speed).")
 
     args = parser.parse_args()
 
@@ -241,8 +295,14 @@ def main():
     baseline_label = "Baseline (contrastive_weight=0)"
     treatment_label = f"Treatment (contrastive_weight={args.contrastive_weight})" if not args.compare_only else "Treatment"
 
-    print_summary(baseline, treatment, baseline_label, treatment_label)
-    plot_comparison(baseline, treatment, baseline_label=baseline_label, treatment_label=treatment_label)
+    baseline_conv = compute_convergence(baseline, target_k=args.target_k, target_acc=args.target_acc)
+    treatment_conv = compute_convergence(treatment, target_k=args.target_k, target_acc=args.target_acc)
+
+    print_summary(baseline, treatment, baseline_label, treatment_label,
+                   baseline_conv=baseline_conv, treatment_conv=treatment_conv,
+                   target_k=args.target_k, target_acc=args.target_acc)
+    plot_comparison(baseline, treatment, baseline_label=baseline_label, treatment_label=treatment_label,
+                     baseline_conv=baseline_conv, treatment_conv=treatment_conv, target_k=args.target_k)
     plot_final_bars(baseline, treatment, baseline_label=baseline_label, treatment_label=treatment_label)
 
 

@@ -109,10 +109,17 @@ def generate_embeddings(
     codes = np.concatenate(codes, axis=0).astype(np.float32)
     labels = np.concatenate(labels, axis=0)
 
+    # digit/rotation index per point, derived the same way class_names was
+    # built above (class_idx = di * n_rots + ri) -- needed for same-digit
+    # pairing further down.
+    digit_idx = labels // n_rots
+    rot_idx = labels % n_rots
+
     perm = rng.permutation(len(codes))
     codes, labels = codes[perm], labels[perm]
+    digit_idx, rot_idx = digit_idx[perm], rot_idx[perm]
 
-    return codes, labels, class_names
+    return codes, labels, class_names, digit_idx, rot_idx
 
 
 # ---------------------------------------------------------------------------
@@ -174,6 +181,81 @@ def build_pairs(codes, labels, pairs_per_sample=1, positive_prob=0.5, seed=45):
     return paired_codes[perm], paired_labels[perm], pair_labels[perm]
 
 
+def build_pairs_same_digit(codes, digit_idx, rot_idx, labels, pairs_per_sample=1, positive_prob=0.5, seed=45):
+    """Same-digit-restricted pairing.
+
+    Both anchor and partner are always drawn from the SAME digit. z=1 if
+    they also share rotation (positive: same full class), z=0 if they
+    differ in rotation (negative: same digit, different rotation).
+
+    This is deliberately different from build_pairs(): by construction it
+    can never encode "different digit" (the distinction the unsupervised
+    GMM/split-merge machinery already finds trivially on its own -- see
+    the digit-only baseline's K=11, ACC=0.82 result). Every pair here
+    carries information specifically about the harder, finer-grained
+    rotation distinction, which is the complementary signal worth adding.
+
+    Intended to be paired with --contrastive_weight 0
+    --subcluster_contrastive_weight X in ClusterNetModel/DeepDPM.py, so
+    the pairwise supervision only influences the subclustering net (which
+    is what's responsible for finding structure *within* an already
+    top-level-clustered digit) rather than the top-level cluster_net.
+
+    Returns:
+        paired_codes: (M, 2, D) float32
+        paired_labels: (M,) int64 -- anchor's full class id
+        pair_labels: (M,) float32 -- 1.0 same rotation, 0.0 different rotation
+    """
+    rng = np.random.default_rng(seed)
+    n = len(codes)
+
+    by_digit = {}
+    for d in np.unique(digit_idx):
+        by_digit[d] = np.where(digit_idx == d)[0]
+
+    paired_codes = []
+    paired_labels = []
+    pair_labels = []
+
+    for _ in range(pairs_per_sample):
+        for i in range(n):
+            d = digit_idx[i]
+            r = rot_idx[i]
+            same_digit_idxs = by_digit[d]
+
+            is_positive = rng.random() < positive_prob
+
+            if is_positive:
+                candidates = same_digit_idxs[rot_idx[same_digit_idxs] == r]
+                if len(candidates) > 1:
+                    partner_idx = i
+                    while partner_idx == i:
+                        partner_idx = int(rng.choice(candidates))
+                else:
+                    partner_idx = i
+                z = 1.0
+            else:
+                candidates = same_digit_idxs[rot_idx[same_digit_idxs] != r]
+                if len(candidates) == 0:
+                    # degenerate (shouldn't happen with >1 rotation), fall back to positive
+                    partner_idx = i
+                    z = 1.0
+                else:
+                    partner_idx = int(rng.choice(candidates))
+                    z = 0.0
+
+            paired_codes.append(np.stack([codes[i], codes[partner_idx]], axis=0))
+            paired_labels.append(labels[i])
+            pair_labels.append(z)
+
+    paired_codes = np.stack(paired_codes, axis=0).astype(np.float32)
+    paired_labels = np.array(paired_labels, dtype=np.int64)
+    pair_labels = np.array(pair_labels, dtype=np.float32)
+
+    perm = rng.permutation(len(paired_codes))
+    return paired_codes[perm], paired_labels[perm], pair_labels[perm]
+
+
 # ---------------------------------------------------------------------------
 # Save (.pt layout expected by CustomPairDataset) / metadata
 # ---------------------------------------------------------------------------
@@ -210,13 +292,16 @@ def main():
     parser.add_argument("--rot-sep", type=float, default=4.0)
     parser.add_argument("--noise-std", type=float, default=1.0)
     parser.add_argument("--pairs-per-sample", type=int, default=1, help="How many (anchor, partner) pairs to generate per base point")
-    parser.add_argument("--positive-prob", type=float, default=0.5, help="Probability a generated pair is same-class (positive)")
+    parser.add_argument("--positive-prob", type=float, default=0.5, help="Probability a generated pair is 'positive' under the chosen --pairing-mode")
+    parser.add_argument("--pairing-mode", type=str, default="random", choices=["random", "same-digit"],
+                         help="'random': pairs from anywhere (z=1 same full class, z=0 different class -- redundant with what unsupervised clustering already finds easily). "
+                              "'same-digit': pairs restricted to the same digit (z=1 same rotation, z=0 different rotation -- targets the harder, complementary distinction; intended for use with --subcluster_contrastive_weight rather than --contrastive_weight).")
     parser.add_argument("--test-fraction", type=float, default=0.0, help="Fraction of base points held out for a test split (0 = no test split, matching your original runs' 'Test data not found' behavior)")
     parser.add_argument("--seed", type=int, default=45)
     parser.add_argument("--out-dir", type=str, required=True)
     args = parser.parse_args()
 
-    codes, labels, class_names = generate_embeddings(
+    codes, labels, class_names, digit_idx, rot_idx = generate_embeddings(
         digits=args.digits,
         rotations=args.rotations,
         samples_per_class=args.samples_per_class,
@@ -234,25 +319,38 @@ def main():
         n_test = int(n * args.test_fraction)
         test_idx, train_idx = perm[:n_test], perm[n_test:]
         train_codes, train_labels = codes[train_idx], labels[train_idx]
+        train_digit_idx, train_rot_idx = digit_idx[train_idx], rot_idx[train_idx]
         test_codes, test_labels = codes[test_idx], labels[test_idx]
+        test_digit_idx, test_rot_idx = digit_idx[test_idx], rot_idx[test_idx]
     else:
         train_codes, train_labels = codes, labels
+        train_digit_idx, train_rot_idx = digit_idx, rot_idx
         test_codes, test_labels = None, None
+        test_digit_idx, test_rot_idx = None, None
 
-    train_paired_codes, train_paired_labels, train_pair_labels = build_pairs(
-        train_codes, train_labels,
-        pairs_per_sample=args.pairs_per_sample,
-        positive_prob=args.positive_prob,
-        seed=args.seed,
+    def _build(codes_, labels_, digit_idx_, rot_idx_, seed_):
+        if args.pairing_mode == "same-digit":
+            return build_pairs_same_digit(
+                codes_, digit_idx_, rot_idx_, labels_,
+                pairs_per_sample=args.pairs_per_sample,
+                positive_prob=args.positive_prob,
+                seed=seed_,
+            )
+        return build_pairs(
+            codes_, labels_,
+            pairs_per_sample=args.pairs_per_sample,
+            positive_prob=args.positive_prob,
+            seed=seed_,
+        )
+
+    train_paired_codes, train_paired_labels, train_pair_labels = _build(
+        train_codes, train_labels, train_digit_idx, train_rot_idx, args.seed
     )
     save_pt_dataset(args.out_dir, train_paired_codes, train_paired_labels, train_pair_labels, split="train")
 
     if test_codes is not None and len(test_codes) > 0:
-        test_paired_codes, test_paired_labels, test_pair_labels = build_pairs(
-            test_codes, test_labels,
-            pairs_per_sample=args.pairs_per_sample,
-            positive_prob=args.positive_prob,
-            seed=args.seed + 1,  # different seed so test pairing isn't identical to train
+        test_paired_codes, test_paired_labels, test_pair_labels = _build(
+            test_codes, test_labels, test_digit_idx, test_rot_idx, args.seed + 1
         )
         save_pt_dataset(args.out_dir, test_paired_codes, test_paired_labels, test_pair_labels, split="test")
     else:
@@ -271,6 +369,7 @@ def main():
             "noise_std": args.noise_std,
             "pairs_per_sample": args.pairs_per_sample,
             "positive_prob": args.positive_prob,
+            "pairing_mode": args.pairing_mode,
             "test_fraction": args.test_fraction,
             "seed": args.seed,
         },
