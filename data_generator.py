@@ -134,6 +134,7 @@ def build_pairs(codes, labels, pairs_per_sample=1, positive_prob=0.5, seed=45):
         paired_codes: (M, 2, D) float32 array, M = N * pairs_per_sample
         paired_labels: (M,) int64 array -- the anchor's class
         pair_labels: (M,) float32 array -- 1.0 if same class, 0.0 if different
+        partner_labels: (M,) int64 array -- the partner's class (for inspection/printing only)
     """
     rng = np.random.default_rng(seed)
     n = len(codes)
@@ -146,6 +147,7 @@ def build_pairs(codes, labels, pairs_per_sample=1, positive_prob=0.5, seed=45):
     paired_codes = []
     paired_labels = []
     pair_labels = []
+    partner_labels = []
 
     for _ in range(pairs_per_sample):
         for i in range(n):
@@ -171,14 +173,16 @@ def build_pairs(codes, labels, pairs_per_sample=1, positive_prob=0.5, seed=45):
             paired_codes.append(np.stack([codes[i], codes[partner_idx]], axis=0))
             paired_labels.append(anchor_label)
             pair_labels.append(z)
+            partner_labels.append(labels[partner_idx])
 
     paired_codes = np.stack(paired_codes, axis=0).astype(np.float32)   # (M, 2, D)
     paired_labels = np.array(paired_labels, dtype=np.int64)            # (M,)
     pair_labels = np.array(pair_labels, dtype=np.float32)              # (M,)
+    partner_labels = np.array(partner_labels, dtype=np.int64)          # (M,)
 
     # shuffle across the whole set so repeated-anchor pairs aren't adjacent
     perm = rng.permutation(len(paired_codes))
-    return paired_codes[perm], paired_labels[perm], pair_labels[perm]
+    return paired_codes[perm], paired_labels[perm], pair_labels[perm], partner_labels[perm]
 
 
 def build_pairs_same_digit(codes, digit_idx, rot_idx, labels, pairs_per_sample=1, positive_prob=0.5, seed=45):
@@ -205,6 +209,7 @@ def build_pairs_same_digit(codes, digit_idx, rot_idx, labels, pairs_per_sample=1
         paired_codes: (M, 2, D) float32
         paired_labels: (M,) int64 -- anchor's full class id
         pair_labels: (M,) float32 -- 1.0 same rotation, 0.0 different rotation
+        partner_labels: (M,) int64 -- partner's full class id (for inspection/printing only)
     """
     rng = np.random.default_rng(seed)
     n = len(codes)
@@ -216,6 +221,7 @@ def build_pairs_same_digit(codes, digit_idx, rot_idx, labels, pairs_per_sample=1
     paired_codes = []
     paired_labels = []
     pair_labels = []
+    partner_labels = []
 
     for _ in range(pairs_per_sample):
         for i in range(n):
@@ -247,13 +253,178 @@ def build_pairs_same_digit(codes, digit_idx, rot_idx, labels, pairs_per_sample=1
             paired_codes.append(np.stack([codes[i], codes[partner_idx]], axis=0))
             paired_labels.append(labels[i])
             pair_labels.append(z)
+            partner_labels.append(labels[partner_idx])
 
     paired_codes = np.stack(paired_codes, axis=0).astype(np.float32)
     paired_labels = np.array(paired_labels, dtype=np.int64)
     pair_labels = np.array(pair_labels, dtype=np.float32)
+    partner_labels = np.array(partner_labels, dtype=np.int64)
 
     perm = rng.permutation(len(paired_codes))
-    return paired_codes[perm], paired_labels[perm], pair_labels[perm]
+    return paired_codes[perm], paired_labels[perm], pair_labels[perm], partner_labels[perm]
+
+
+def build_pairs_same_digit_exhaustive(codes, digit_idx, rot_idx, labels, digits, rotations,
+                                       pairs_per_combo=5, seed=45):
+    """Exhaustive version of build_pairs_same_digit: guarantees every
+    ordered (digit, rotation_a, rotation_b) combination is represented,
+    including same-rotation combos (rotation_a == rotation_b, z=1) and
+    every cross-rotation combo (z=0) -- e.g. for rotations [0,90,180,270]
+    this covers all 4x4=16 (rotation_a, rotation_b) pairs per digit:
+    0-0, 0-90, 0-180, 0-270, 90-0, 90-90, ..., 270-180, 270-270.
+
+    Unlike build_pairs_same_digit (which independently samples ONE random
+    partner per anchor point and can, by chance, miss rare combinations
+    entirely -- confirmed empirically at small sample sizes), this
+    explicitly loops over every combination and draws `pairs_per_combo`
+    anchor/partner pairs for each, so coverage is guaranteed rather than
+    probabilistic.
+
+    Args:
+        digits, rotations: the same lists passed to generate_embeddings
+        pairs_per_combo: how many (anchor, partner) pairs to draw for each
+            of the n_digits * n_rotations^2 combinations
+
+    Returns:
+        paired_codes: (M, 2, D) float32, M = n_digits * n_rotations^2 * pairs_per_combo
+        paired_labels: (M,) int64 -- anchor's full class id
+        pair_labels: (M,) float32 -- 1.0 same rotation, 0.0 different rotation
+        partner_labels: (M,) int64 -- partner's full class id
+    """
+    rng = np.random.default_rng(seed)
+    n_digits = len(digits)
+    n_rots = len(rotations)
+
+    # index points by (digit_idx, rot_idx) for direct lookup
+    by_digit_rot = {}
+    for di in range(n_digits):
+        for ri in range(n_rots):
+            mask = (digit_idx == di) & (rot_idx == ri)
+            by_digit_rot[(di, ri)] = np.where(mask)[0]
+            if len(by_digit_rot[(di, ri)]) == 0:
+                raise ValueError(f"No points found for digit index {di}, rotation index {ri} -- "
+                                  f"check that samples_per_class > 0 for every (digit, rotation) combo.")
+
+    paired_codes = []
+    paired_labels = []
+    pair_labels = []
+    partner_labels = []
+
+    for di in range(n_digits):
+        for ra in range(n_rots):
+            anchor_pool = by_digit_rot[(di, ra)]
+            for rb in range(n_rots):
+                partner_pool = by_digit_rot[(di, rb)]
+                z = 1.0 if ra == rb else 0.0
+
+                for _ in range(pairs_per_combo):
+                    anchor_idx = int(rng.choice(anchor_pool))
+                    if ra == rb:
+                        # avoid trivially pairing a point with itself when possible
+                        if len(partner_pool) > 1:
+                            partner_idx = anchor_idx
+                            while partner_idx == anchor_idx:
+                                partner_idx = int(rng.choice(partner_pool))
+                        else:
+                            partner_idx = anchor_idx
+                    else:
+                        partner_idx = int(rng.choice(partner_pool))
+
+                    paired_codes.append(np.stack([codes[anchor_idx], codes[partner_idx]], axis=0))
+                    paired_labels.append(labels[anchor_idx])
+                    pair_labels.append(z)
+                    partner_labels.append(labels[partner_idx])
+
+    paired_codes = np.stack(paired_codes, axis=0).astype(np.float32)
+    paired_labels = np.array(paired_labels, dtype=np.int64)
+    pair_labels = np.array(pair_labels, dtype=np.float32)
+    partner_labels = np.array(partner_labels, dtype=np.int64)
+
+    perm = rng.permutation(len(paired_codes))
+    return paired_codes[perm], paired_labels[perm], pair_labels[perm], partner_labels[perm]
+
+
+def build_pairs_same_digit_custom(codes, digit_idx, rot_idx, labels, digits, rotations,
+                                   rotation_pairs, pairs_per_combo=5, seed=45):
+    """Same-digit pairing restricted to an explicit, user-specified list of
+    (rotation_a, rotation_b) combinations -- e.g. only the cyclic
+    transitions [(0,90), (90,180), (180,270), (270,0)], rather than every
+    possible combination.
+
+    For each digit, and for each (ra, rb) pair in `rotation_pairs` (given
+    as actual rotation VALUES, e.g. degrees -- matching the `rotations`
+    list, not indices), draws `pairs_per_combo` anchor/partner pairs with
+    anchor rotation ra and partner rotation rb. z = 1.0 if ra == rb (only
+    relevant if you explicitly include a same-rotation pair like (0, 0)),
+    else 0.0.
+
+    Args:
+        digits, rotations: the same lists passed to generate_embeddings
+        rotation_pairs: list of (ra, rb) tuples using actual rotation
+            values from `rotations`, e.g. [(0, 90), (90, 180), (180, 270), (270, 0)]
+        pairs_per_combo: how many pairs to draw per digit per combination
+
+    Returns:
+        paired_codes: (M, 2, D) float32, M = n_digits * len(rotation_pairs) * pairs_per_combo
+        paired_labels: (M,) int64 -- anchor's full class id
+        pair_labels: (M,) float32 -- 1.0 if ra==rb else 0.0
+        partner_labels: (M,) int64 -- partner's full class id
+    """
+    rng = np.random.default_rng(seed)
+    n_digits = len(digits)
+    rot_value_to_idx = {r: i for i, r in enumerate(rotations)}
+
+    for ra, rb in rotation_pairs:
+        if ra not in rot_value_to_idx or rb not in rot_value_to_idx:
+            raise ValueError(
+                f"rotation_pairs entry ({ra}, {rb}) uses a value not in `rotations` "
+                f"({rotations}). Use actual rotation values (e.g. degrees), not indices."
+            )
+
+    by_digit_rot = {}
+    for di in range(n_digits):
+        for ri in range(len(rotations)):
+            mask = (digit_idx == di) & (rot_idx == ri)
+            by_digit_rot[(di, ri)] = np.where(mask)[0]
+            if len(by_digit_rot[(di, ri)]) == 0:
+                raise ValueError(f"No points found for digit index {di}, rotation index {ri}.")
+
+    paired_codes = []
+    paired_labels = []
+    pair_labels = []
+    partner_labels = []
+
+    for di in range(n_digits):
+        for ra_val, rb_val in rotation_pairs:
+            ra, rb = rot_value_to_idx[ra_val], rot_value_to_idx[rb_val]
+            anchor_pool = by_digit_rot[(di, ra)]
+            partner_pool = by_digit_rot[(di, rb)]
+            z = 1.0 if ra == rb else 0.0
+
+            for _ in range(pairs_per_combo):
+                anchor_idx = int(rng.choice(anchor_pool))
+                if ra == rb:
+                    if len(partner_pool) > 1:
+                        partner_idx = anchor_idx
+                        while partner_idx == anchor_idx:
+                            partner_idx = int(rng.choice(partner_pool))
+                    else:
+                        partner_idx = anchor_idx
+                else:
+                    partner_idx = int(rng.choice(partner_pool))
+
+                paired_codes.append(np.stack([codes[anchor_idx], codes[partner_idx]], axis=0))
+                paired_labels.append(labels[anchor_idx])
+                pair_labels.append(z)
+                partner_labels.append(labels[partner_idx])
+
+    paired_codes = np.stack(paired_codes, axis=0).astype(np.float32)
+    paired_labels = np.array(paired_labels, dtype=np.int64)
+    pair_labels = np.array(pair_labels, dtype=np.float32)
+    partner_labels = np.array(partner_labels, dtype=np.int64)
+
+    perm = rng.permutation(len(paired_codes))
+    return paired_codes[perm], paired_labels[perm], pair_labels[perm], partner_labels[perm]
 
 
 # ---------------------------------------------------------------------------
@@ -279,6 +450,25 @@ def save_metadata(out_dir, class_names, meta_extra=None):
         json.dump(meta, f, indent=2)
 
 
+def print_pair_sample(paired_labels, pair_labels, partner_labels, class_names, n_samples=20, seed=45):
+    """Prints a random sample of pairs (anchor label, partner label, z) so
+    you can eyeball whether the pairing logic is doing what you expect --
+    e.g. that 'same-digit' mode never pairs across digits, or that the
+    same/different balance looks reasonable."""
+    rng = np.random.default_rng(seed)
+    n = len(paired_labels)
+    sample_idx = rng.choice(n, size=min(n_samples, n), replace=False)
+
+    print(f"\nSample of {len(sample_idx)} pairs (out of {n} total):")
+    print(f"{'anchor':<10}{'partner':<10}{'z (same=1/diff=0)':<20}")
+    print("-" * 40)
+    for idx in sample_idx:
+        anchor_name = class_names[paired_labels[idx]]
+        partner_name = class_names[partner_labels[idx]]
+        z = pair_labels[idx]
+        print(f"{anchor_name:<10}{partner_name:<10}{z:<20.1f}")
+
+
 # ---------------------------------------------------------------------------
 # CLI
 # ---------------------------------------------------------------------------
@@ -291,11 +481,19 @@ def main():
     parser.add_argument("--digit-sep", type=float, default=8.0)
     parser.add_argument("--rot-sep", type=float, default=4.0)
     parser.add_argument("--noise-std", type=float, default=1.0)
-    parser.add_argument("--pairs-per-sample", type=int, default=1, help="How many (anchor, partner) pairs to generate per base point")
-    parser.add_argument("--positive-prob", type=float, default=0.5, help="Probability a generated pair is 'positive' under the chosen --pairing-mode")
-    parser.add_argument("--pairing-mode", type=str, default="random", choices=["random", "same-digit"],
+    parser.add_argument("--pairs-per-sample", type=int, default=1, help="How many (anchor, partner) pairs to generate per base point (used by 'random'/'same-digit' modes; ignored by 'same-digit-exhaustive')")
+    parser.add_argument("--positive-prob", type=float, default=0.5, help="Probability a generated pair is 'positive' under the chosen --pairing-mode (used by 'random'/'same-digit' modes; ignored by 'same-digit-exhaustive')")
+    parser.add_argument("--pairs-per-combo", type=int, default=5, help="Pairs to draw per combination -- used by 'same-digit-exhaustive' and 'same-digit-custom' modes")
+    parser.add_argument("--rotation-pairs", type=str, default=None,
+                         help="Comma-separated list of 'a-b' rotation VALUE pairs (matching --rotations, e.g. degrees) "
+                              "to restrict pairing to -- e.g. '0-90,90-180,180-270,270-0' for a cyclic pattern. "
+                              "Required when --pairing-mode same-digit-custom.")
+    parser.add_argument("--pairing-mode", type=str, default="random",
+                         choices=["random", "same-digit", "same-digit-exhaustive", "same-digit-custom"],
                          help="'random': pairs from anywhere (z=1 same full class, z=0 different class -- redundant with what unsupervised clustering already finds easily). "
-                              "'same-digit': pairs restricted to the same digit (z=1 same rotation, z=0 different rotation -- targets the harder, complementary distinction; intended for use with --subcluster_contrastive_weight rather than --contrastive_weight).")
+                              "'same-digit': pairs restricted to the same digit, one random partner per anchor point (z=1 same rotation, z=0 different rotation) -- coverage of specific rotation combinations is NOT guaranteed, especially at small sample sizes. "
+                              "'same-digit-exhaustive': same restriction, but guarantees every (digit, rotation_a, rotation_b) combination appears at least --pairs-per-combo times. "
+                              "'same-digit-custom': same restriction, but only the specific (rotation_a, rotation_b) combinations given in --rotation-pairs (e.g. a cyclic subset instead of the full grid).")
     parser.add_argument("--test-fraction", type=float, default=0.0, help="Fraction of base points held out for a test split (0 = no test split, matching your original runs' 'Test data not found' behavior)")
     parser.add_argument("--seed", type=int, default=45)
     parser.add_argument("--out-dir", type=str, required=True)
@@ -328,7 +526,32 @@ def main():
         test_codes, test_labels = None, None
         test_digit_idx, test_rot_idx = None, None
 
+    parsed_rotation_pairs = None
+    if args.rotation_pairs:
+        parsed_rotation_pairs = []
+        for token in args.rotation_pairs.split(","):
+            a, b = token.strip().split("-")
+            parsed_rotation_pairs.append((int(a), int(b)))
+
+    if args.pairing_mode == "same-digit-custom" and not parsed_rotation_pairs:
+        raise ValueError("--pairing-mode same-digit-custom requires --rotation-pairs, e.g. '0-90,90-180,180-270,270-0'")
+
     def _build(codes_, labels_, digit_idx_, rot_idx_, seed_):
+        if args.pairing_mode == "same-digit-custom":
+            return build_pairs_same_digit_custom(
+                codes_, digit_idx_, rot_idx_, labels_,
+                digits=args.digits, rotations=args.rotations,
+                rotation_pairs=parsed_rotation_pairs,
+                pairs_per_combo=args.pairs_per_combo,
+                seed=seed_,
+            )
+        if args.pairing_mode == "same-digit-exhaustive":
+            return build_pairs_same_digit_exhaustive(
+                codes_, digit_idx_, rot_idx_, labels_,
+                digits=args.digits, rotations=args.rotations,
+                pairs_per_combo=args.pairs_per_combo,
+                seed=seed_,
+            )
         if args.pairing_mode == "same-digit":
             return build_pairs_same_digit(
                 codes_, digit_idx_, rot_idx_, labels_,
@@ -343,13 +566,13 @@ def main():
             seed=seed_,
         )
 
-    train_paired_codes, train_paired_labels, train_pair_labels = _build(
+    train_paired_codes, train_paired_labels, train_pair_labels, train_partner_labels = _build(
         train_codes, train_labels, train_digit_idx, train_rot_idx, args.seed
     )
     save_pt_dataset(args.out_dir, train_paired_codes, train_paired_labels, train_pair_labels, split="train")
 
     if test_codes is not None and len(test_codes) > 0:
-        test_paired_codes, test_paired_labels, test_pair_labels = _build(
+        test_paired_codes, test_paired_labels, test_pair_labels, test_partner_labels = _build(
             test_codes, test_labels, test_digit_idx, test_rot_idx, args.seed + 1
         )
         save_pt_dataset(args.out_dir, test_paired_codes, test_paired_labels, test_pair_labels, split="test")
@@ -370,10 +593,14 @@ def main():
             "pairs_per_sample": args.pairs_per_sample,
             "positive_prob": args.positive_prob,
             "pairing_mode": args.pairing_mode,
+            "rotation_pairs": parsed_rotation_pairs,
             "test_fraction": args.test_fraction,
             "seed": args.seed,
         },
     )
+
+    # ── Print a sample of pairs for a quick sanity check ────────────────
+    print_pair_sample(train_paired_labels, train_pair_labels, train_partner_labels, class_names, n_samples=20, seed=args.seed)
 
 
 if __name__ == "__main__":

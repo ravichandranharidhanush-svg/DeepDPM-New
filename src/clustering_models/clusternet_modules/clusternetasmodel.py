@@ -589,6 +589,21 @@ class ClusterNetModel(pl.LightningModule):
             action = "split" if self.split_performed else "merge"
             print(f"[{action.capitalize()}] K updated → {self.K} clusters")
 
+            avg_cluster_loss = float(np.mean(self._epoch_cluster_losses)) if self._epoch_cluster_losses else float("nan")
+            avg_subcluster_loss = float(np.mean(self._epoch_subcluster_losses)) if self._epoch_subcluster_losses else float("nan")
+            avg_pairwise_loss = float(np.mean(self._epoch_pairwise_losses)) if self._epoch_pairwise_losses else float("nan")
+            avg_sub_pairwise_loss = float(np.mean(self._epoch_sub_pairwise_losses)) if self._epoch_sub_pairwise_losses else float("nan")
+
+            loss_parts = [
+                f"cluster_loss={avg_cluster_loss:.4f}",
+                f"subcluster_loss={avg_subcluster_loss:.4f}",
+            ]
+            if self._epoch_pairwise_losses:
+                loss_parts.append(f"pairwise_loss={avg_pairwise_loss:.4f}")
+            if self._epoch_sub_pairwise_losses:
+                loss_parts.append(f"sub_pairwise_loss={avg_sub_pairwise_loss:.4f}")
+            print(f"  [Epoch {self.current_epoch}] losses at {action} → " + ", ".join(loss_parts))
+
         # ---- record this epoch's history (skip the code-gathering epoch) ----
         if self.current_training_stage != "gather_codes":
             self.history["epoch"].append(self.current_epoch)
