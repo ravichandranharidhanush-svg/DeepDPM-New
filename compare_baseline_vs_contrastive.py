@@ -131,7 +131,7 @@ def compute_convergence(run, target_k=None, target_acc=None):
 # ---------------------------------------------------------------------------
 # Plotting + summary
 # ---------------------------------------------------------------------------
-def plot_comparison(baseline, treatment, save_path="comparison_plot.png",
+def plot_comparison(baseline, treatment, save_path="logs/comparison_plot.png",
                      baseline_label="Baseline (contrastive_weight=0)",
                      treatment_label="Treatment",
                      baseline_conv=None, treatment_conv=None, target_k=None):
@@ -159,12 +159,13 @@ def plot_comparison(baseline, treatment, save_path="comparison_plot.png",
 
     plt.suptitle("Baseline vs. Treatment", fontsize=14, fontweight="bold")
     plt.tight_layout()
+    os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
     plt.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"\nComparison plot saved to: {save_path}")
 
 
-def plot_final_bars(baseline, treatment, save_path="comparison_final_bars.png",
+def plot_final_bars(baseline, treatment, save_path="logs/comparison_final_bars.png",
                      baseline_label="Baseline", treatment_label="Treatment"):
     if baseline["final"] is None or treatment["final"] is None:
         print("Skipping final-metrics bar chart -- final summary line not found in one or both logs.")
@@ -193,6 +194,7 @@ def plot_final_bars(baseline, treatment, save_path="comparison_final_bars.png",
     ax.grid(alpha=0.3, axis="y")
 
     plt.tight_layout()
+    os.makedirs(os.path.dirname(save_path) or ".", exist_ok=True)
     plt.savefig(save_path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"Final-metrics bar chart saved to: {save_path}")
