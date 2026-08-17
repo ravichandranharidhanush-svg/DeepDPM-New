@@ -96,9 +96,24 @@ def Visualize(out, digits=None, rotations=None, reducer="pca"):
     # separable, not an artifact of the visualization step. Pass
     # reducer="umap" to force UMAP instead (useful for direct raw-pixel or
     # synthetic-Gaussian embeddings, which haven't already been through UMAP).
+    # reducer="tsne": t-SNE explicitly optimizes to keep same-cluster points
+    # close and different-cluster points far apart in the 2D view -- unlike
+    # PCA (which optimizes variance, not visual separation) or UMAP, it's
+    # often the clearest option specifically for "does this look separated"
+    # checks. If actual clustering (e.g. DeepDPM) already scores well but a
+    # PCA/UMAP plot still looks overlapping, that's usually because the
+    # separating structure is spread across more than 2 dimensions -- t-SNE
+    # tends to reveal it more clearly than a linear 2-component projection.
     if embs.shape[1] == 2:
         embs_2d = embs
         print("embed_dim is already 2 -- plotting directly, no further reduction.")
+    elif reducer == "tsne":
+        from sklearn.manifold import TSNE
+        n = len(embs)
+        perplexity = min(30, max(5, n // 4))
+        embs_2d = TSNE(n_components=2, random_state=42, perplexity=perplexity, init="pca").fit_transform(embs)
+        print(f"t-SNE (perplexity={perplexity}) -- optimized for visual cluster separation, "
+              f"not a faithful global-distance projection like PCA.")
     elif reducer == "umap":
         import umap
         reducer2d = umap.UMAP(n_components=2, random_state=42)
@@ -107,7 +122,14 @@ def Visualize(out, digits=None, rotations=None, reducer="pca"):
         from sklearn.decomposition import PCA
         reducer2d = PCA(n_components=2, random_state=42)
         embs_2d = reducer2d.fit_transform(embs)
-        print(f"PCA explained variance (top 2 PCs): {reducer2d.explained_variance_ratio_.sum():.3f}")
+        var = reducer2d.explained_variance_ratio_.sum()
+        print(f"PCA explained variance (top 2 PCs): {var:.3f}")
+        if var < 0.6:
+            print(f"  NOTE: top 2 PCs only explain {var:.1%} of variance -- real separating "
+                  f"structure may be spread across more dimensions than this 2D view can show. "
+                  f"Overlap here doesn't necessarily mean poor separation in the full embedding "
+                  f"(e.g. DeepDPM clusters in the full space, not this projection). Try "
+                  f"reducer='tsne' for a view optimized for visual cluster separation.")
 
     # ── Plot 1 : All classes ────────────────────────────────────────────────
     fig, axes = plt.subplots(1, 3, figsize=(20, 6))
@@ -223,6 +245,12 @@ def VisualizeByDigit(out, digit, digits=None, rotations=None, reducer="pca"):
 
     if sub_embs.shape[1] == 2:
         embs_2d = sub_embs
+    elif reducer == "tsne":
+        from sklearn.manifold import TSNE
+        n = len(sub_embs)
+        perplexity = min(30, max(5, n // 4))
+        embs_2d = TSNE(n_components=2, random_state=42, perplexity=perplexity, init="pca").fit_transform(sub_embs)
+        print(f"  t-SNE (perplexity={perplexity}, digit {digit} only)")
     elif reducer == "umap":
         import umap
         embs_2d = umap.UMAP(n_components=2, random_state=42).fit_transform(sub_embs)
@@ -257,9 +285,11 @@ def VisualizeByDigit(out, digit, digits=None, rotations=None, reducer="pca"):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Visualize a ROT_PAIR dataset's embedding separability.")
     parser.add_argument("--out", type=str, required=True, help="Directory containing train_data.pt / train_labels.pt / metadata.json")
-    parser.add_argument("--reducer", type=str, default="pca", choices=["pca", "umap"],
+    parser.add_argument("--reducer", type=str, default="pca", choices=["pca", "umap", "tsne"],
                          help="2D reduction method for plotting. 'pca' (default) avoids compounding a second "
                               "nonlinear reduction on top of embeddings that already went through UMAP. Use "
-                              "'umap' for embeddings that haven't been through UMAP yet (e.g. synthetic).")
+                              "'umap' for embeddings that haven't been through UMAP yet (e.g. synthetic). Use "
+                              "'tsne' if PCA/UMAP look overlapping despite good actual clustering results -- "
+                              "t-SNE optimizes specifically for visual cluster separation.")
     args = parser.parse_args()
     Visualize(args.out, reducer=args.reducer)
