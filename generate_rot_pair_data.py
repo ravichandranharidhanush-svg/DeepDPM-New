@@ -131,6 +131,8 @@ def generate_embeddings_from_mnist_umap(
     mnist_root="./mnist_data",
     umap_neighbors=15,
     umap_min_dist=0.1,
+    supervise_by=None,
+    umap_target_weight=0.5,
 ):
     """Real-data alternative to generate_embeddings(). Pulls actual MNIST
     digit images, applies each requested rotation, and fits UMAP on the
@@ -152,6 +154,35 @@ def generate_embeddings_from_mnist_umap(
     together (rather than per-class) is what lets true cross-class
     similarity surface -- if you fit UMAP separately per class, you
     throw away exactly the information you're trying to preserve.
+
+    supervise_by: None (default), "digit", or "class".
+        Fully unsupervised UMAP on raw pixels can fail to separate even
+        digit identity if samples_per_class is small or the pixel-space
+        neighborhood structure is noisy -- and when that happens, NO
+        clustering method downstream (with or without pairwise
+        supervision) has anything real to find, since the bottleneck is
+        the embedding itself, not the clustering algorithm.
+        - "digit": semi-supervised UMAP, nudged (via `umap_target_weight`)
+          to respect digit identity while rotation structure is left to
+          emerge from the real pixel data on its own. This guarantees
+          digit-level separability (so DeepDPM has real structure to
+          discover) while still allowing genuine rotation-driven overlap
+          -- e.g. 6@180 vs 9@0 -- to appear where it actually exists in
+          the pixels, rather than being fabricated OR accidentally
+          destroyed by an unstable unsupervised fit.
+        - "class": semi-supervised on the full (digit, rotation) class
+          instead -- guarantees full separability, useful as a sanity
+          baseline but removes the rotation-ambiguity phenomenon you're
+          trying to study.
+        - None: fully unsupervised (original behavior) -- most faithful
+          to "let the real data speak for itself," but can fail to
+          separate even digits if UMAP's fit is unstable on this data.
+    umap_target_weight: 0.0-1.0, only used when supervise_by is set.
+        0 = ignore labels entirely (same as unsupervised); 1 = weight
+        labels very heavily (approaches "class" behavior even under
+        "digit" supervision). 0.5 is a reasonable middle ground: real
+        pixel structure still dominates, labels just anchor digit
+        identity so the fit doesn't collapse it by chance.
 
     Returns the same 5-tuple as generate_embeddings(), so every pairing
     function (build_pairs, build_pairs_same_digit,
@@ -223,12 +254,22 @@ def generate_embeddings_from_mnist_umap(
     rot_idx = np.concatenate(rot_idx_list)
 
     print(f"Fitting UMAP (n_components={embed_dim}, n_neighbors={umap_neighbors}, "
-          f"min_dist={umap_min_dist}) on {len(all_pixel_vectors)} rotated MNIST images...")
+          f"min_dist={umap_min_dist}, supervise_by={supervise_by}) "
+          f"on {len(all_pixel_vectors)} rotated MNIST images...")
     reducer = umap.UMAP(
         n_components=embed_dim, n_neighbors=umap_neighbors, min_dist=umap_min_dist,
         random_state=seed,
+        target_weight=umap_target_weight if supervise_by else 1.0,
     )
-    codes = reducer.fit_transform(all_pixel_vectors).astype(np.float32)
+
+    if supervise_by == "digit":
+        codes = reducer.fit_transform(all_pixel_vectors, y=digit_idx).astype(np.float32)
+    elif supervise_by == "class":
+        codes = reducer.fit_transform(all_pixel_vectors, y=labels).astype(np.float32)
+    elif supervise_by is not None:
+        raise ValueError(f"supervise_by must be None, 'digit', or 'class', got {supervise_by!r}")
+    else:
+        codes = reducer.fit_transform(all_pixel_vectors).astype(np.float32)
 
     perm = rng.permutation(len(codes))
     return codes[perm], labels[perm], class_names, digit_idx[perm], rot_idx[perm]
@@ -237,7 +278,196 @@ def generate_embeddings_from_mnist_umap(
 # ---------------------------------------------------------------------------
 # Pair construction -- materializes actual (anchor, partner, z) triples
 # ---------------------------------------------------------------------------
-def build_pairs(codes, labels, pairs_per_sample=1, positive_prob=0.5, seed=45):
+def generate_embeddings_from_mnist_cnn(
+    digits,
+    rotations,
+    samples_per_class=200,
+    embed_dim=10,
+    seed=45,
+    mnist_root="./mnist_data",
+    cnn_epochs=8,
+    cnn_lr=1e-3,
+    cnn_batch_size=64,
+    val_fraction=0.15,
+    rotation_aux_weight=0.3,
+    device=None,
+):
+    """Real-data alternative to generate_embeddings() / generate_embeddings_from_mnist_umap().
+
+    Rather than reducing raw pixels with UMAP (which is dominated by
+    rotation angle, not digit identity -- rotating an image moves pixel
+    mass more than changing the digit does, so raw-pixel UMAP can fail to
+    separate even easy digit sets under rotation), this trains a small CNN
+    classifier to predict DIGIT identity from the rotated images, then uses
+    its learned penultimate-layer activations as the embedding.
+
+    Why this is the right fix: the CNN's features are *trained* to be
+    digit-separable (that's its objective), so digit-level clustering has
+    real structure to find, by construction. Any genuine rotation-driven
+    ambiguity (e.g. 6 vs 9 near 180 degrees) shows up NATURALLY -- as
+    places where the classifier itself gets confused -- rather than being
+    fabricated (synthetic generator) or erased/imposed by a UMAP
+    hyperparameter (mnist-umap generator).
+
+    IMPORTANT -- rotation_aux_weight: training on digit identity ALONE
+    teaches the network to become rotation-INVARIANT -- that's the whole
+    point of a well-trained digit classifier, and it actively discards
+    rotation information as nuisance variation. Empirically this can drive
+    rotation silhouette to ~0, i.e. no rotation structure left to find at
+    all, regardless of any downstream pairwise supervision. Setting
+    rotation_aux_weight > 0 adds a second auxiliary head that also
+    predicts rotation from the same shared embedding, trained jointly
+    (loss = digit_loss + rotation_aux_weight * rotation_loss). This keeps
+    the embedding predictive of BOTH digit (dominant factor) and rotation
+    (finer, auxiliary factor) -- mirroring what digit_sep/rot_sep did
+    explicitly in the synthetic generator, but now grounded in real MNIST
+    pixels via an actually-trained encoder. 0.3 is a reasonable default;
+    raise it if rotation structure still isn't showing up, lower it if
+    digit separation degrades.
+
+    Trains on a train/val split of the SAME rotated-image pool used to
+    build the final dataset (this is meant to produce a good embedding
+    space for a clustering demonstration, not a held-out generalization
+    benchmark -- if you need a strict train/test separation for the
+    embedding model itself, extend this to pull the CNN's training images
+    from a disjoint MNIST split).
+
+    Returns the same 5-tuple as generate_embeddings(), so every pairing
+    function works unchanged on top of it.
+
+    Requires `torch` + `torchvision` and internet access to download MNIST.
+    """
+    try:
+        import torchvision
+        import torchvision.transforms.functional as TF
+    except ImportError as e:
+        raise ImportError("generate_embeddings_from_mnist_cnn requires torchvision.") from e
+    import torch.nn as nn
+    import torch.nn.functional as Fnn
+    from torch.utils.data import TensorDataset, DataLoader
+
+    torch.manual_seed(seed)
+    rng = np.random.default_rng(seed)
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+
+    print(f"Loading MNIST (root={mnist_root}, download if needed)...")
+    dataset = torchvision.datasets.MNIST(root=mnist_root, train=True, download=True)
+
+    n_digits = len(digits)
+    n_rots = len(rotations)
+
+    all_images = []   # (N, 1, 28, 28) float in [0,1]
+    labels = []
+    digit_idx_list = []
+    rot_idx_list = []
+    class_names = []
+
+    class_idx = 0
+    for di, digit in enumerate(digits):
+        pool_mask = dataset.targets == digit
+        pool = dataset.data[pool_mask]
+        if len(pool) < samples_per_class:
+            raise ValueError(f"Not enough MNIST images for digit {digit}: requested "
+                              f"{samples_per_class}, only {len(pool)} available.")
+        chosen = rng.choice(len(pool), size=samples_per_class, replace=False)
+        base_imgs = pool[chosen].float()
+
+        for ri, rot in enumerate(rotations):
+            rotated = torch.stack([
+                TF.rotate(img.unsqueeze(0), angle=float(rot)).squeeze(0)
+                for img in base_imgs
+            ])
+            all_images.append((rotated / 255.0).unsqueeze(1))  # (samples_per_class, 1, 28, 28)
+            labels.append(np.full(samples_per_class, class_idx, dtype=np.int64))
+            digit_idx_list.append(np.full(samples_per_class, di, dtype=np.int64))
+            rot_idx_list.append(np.full(samples_per_class, ri, dtype=np.int64))
+            class_names.append(f"{digit}_{ri}")
+            class_idx += 1
+
+    all_images = torch.cat(all_images, dim=0)                 # (N, 1, 28, 28)
+    labels = np.concatenate(labels)
+    digit_idx = np.concatenate(digit_idx_list)
+    rot_idx = np.concatenate(rot_idx_list)
+    digit_idx_t = torch.from_numpy(digit_idx)
+    rot_idx_t = torch.from_numpy(rot_idx)
+
+    # train/val split for early-stopping sanity (not a strict generalization test)
+    n = len(all_images)
+    perm = rng.permutation(n)
+    n_val = int(n * val_fraction)
+    val_idx, train_idx = perm[:n_val], perm[n_val:]
+
+    train_ds = TensorDataset(all_images[train_idx], digit_idx_t[train_idx], rot_idx_t[train_idx])
+    val_ds = TensorDataset(all_images[val_idx], digit_idx_t[val_idx], rot_idx_t[val_idx])
+    train_dl = DataLoader(train_ds, batch_size=cnn_batch_size, shuffle=True)
+    val_dl = DataLoader(val_ds, batch_size=cnn_batch_size, shuffle=False)
+
+    class DigitCNN(nn.Module):
+        def __init__(self, embed_dim, n_digits, n_rots):
+            super().__init__()
+            self.conv1 = nn.Conv2d(1, 16, 3, padding=1)
+            self.conv2 = nn.Conv2d(16, 32, 3, padding=1)
+            self.fc_embed = nn.Linear(32 * 7 * 7, embed_dim)
+            self.fc_digit = nn.Linear(embed_dim, n_digits)
+            self.fc_rot = nn.Linear(embed_dim, n_rots)  # auxiliary head -- keeps rotation info in the shared embedding
+
+        def embed(self, x):
+            x = Fnn.max_pool2d(Fnn.relu(self.conv1(x)), 2)   # 28->14
+            x = Fnn.max_pool2d(Fnn.relu(self.conv2(x)), 2)   # 14->7
+            x = x.view(x.size(0), -1)
+            return Fnn.relu(self.fc_embed(x))
+
+        def forward(self, x):
+            e = self.embed(x)
+            return self.fc_digit(e), self.fc_rot(e)
+
+    model = DigitCNN(embed_dim, n_digits, n_rots).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=cnn_lr)
+
+    print(f"Training digit-classification CNN ({cnn_epochs} epochs, embed_dim={embed_dim}, "
+          f"rotation_aux_weight={rotation_aux_weight}) to produce a trained, digit-separable "
+          f"embedding space that retains rotation-relevant structure...")
+    for epoch in range(cnn_epochs):
+        model.train()
+        total_loss, n_correct_digit, n_correct_rot, n_seen = 0.0, 0, 0, 0
+        for xb, yb_digit, yb_rot in train_dl:
+            xb, yb_digit, yb_rot = xb.to(device), yb_digit.to(device), yb_rot.to(device)
+            optimizer.zero_grad()
+            digit_logits, rot_logits = model(xb)
+            digit_loss = Fnn.cross_entropy(digit_logits, yb_digit)
+            rot_loss = Fnn.cross_entropy(rot_logits, yb_rot)
+            loss = digit_loss + rotation_aux_weight * rot_loss
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item() * len(xb)
+            n_correct_digit += (digit_logits.argmax(-1) == yb_digit).sum().item()
+            n_correct_rot += (rot_logits.argmax(-1) == yb_rot).sum().item()
+            n_seen += len(xb)
+
+        model.eval()
+        val_correct_digit, val_correct_rot, val_seen = 0, 0, 0
+        with torch.no_grad():
+            for xb, yb_digit, yb_rot in val_dl:
+                xb, yb_digit, yb_rot = xb.to(device), yb_digit.to(device), yb_rot.to(device)
+                digit_logits, rot_logits = model(xb)
+                val_correct_digit += (digit_logits.argmax(-1) == yb_digit).sum().item()
+                val_correct_rot += (rot_logits.argmax(-1) == yb_rot).sum().item()
+                val_seen += len(xb)
+        print(f"  epoch {epoch+1}/{cnn_epochs}: train_loss={total_loss/n_seen:.4f} "
+              f"train_digit_acc={n_correct_digit/n_seen:.3f} "
+              f"val_digit_acc={(val_correct_digit/val_seen if val_seen else float('nan')):.3f} "
+              f"val_rotation_acc={(val_correct_rot/val_seen if val_seen else float('nan')):.3f}")
+
+    # extract embeddings for ALL images (train + val), in original order
+    model.eval()
+    with torch.no_grad():
+        codes = model.embed(all_images.to(device)).cpu().numpy().astype(np.float32)
+
+    out_perm = rng.permutation(len(codes))
+    return codes[out_perm], labels[out_perm], class_names, digit_idx[out_perm], rot_idx[out_perm]
+
+
+
     """For each point in `codes`, build `pairs_per_sample` (anchor, partner)
     pairs, each independently drawn as positive (same class) with
     probability `positive_prob`, else negative (different class).
@@ -590,18 +820,43 @@ def main():
     parser.add_argument("--rotations", type=int, nargs="+", default=[0, 90, 180, 270])
     parser.add_argument("--samples-per-class", type=int, default=200)
     parser.add_argument("--embed-dim", type=int, default=10)
-    parser.add_argument("--data-source", type=str, default="synthetic", choices=["synthetic", "mnist-umap"],
+    parser.add_argument("--data-source", type=str, default="synthetic", choices=["synthetic", "mnist-umap", "mnist-cnn"],
                          help="'synthetic': arbitrary orthogonal directions per digit/rotation -- guaranteed separable, "
                               "cannot represent real visual ambiguity (e.g. 6@180 vs 9@0). "
                               "'mnist-umap': real MNIST digit images, rotated, embedded via a single UMAP fit across all "
-                              "classes -- preserves genuine pixel-level similarity/ambiguity. Requires torchvision + umap-learn "
-                              "and internet access to download MNIST.")
+                              "classes -- preserves genuine pixel-level structure, but raw-pixel distance can be "
+                              "dominated by rotation angle rather than digit identity, sometimes failing to separate "
+                              "even digits. "
+                              "'mnist-cnn': trains a small CNN classifier on digit identity from the rotated images and "
+                              "uses its learned features as the embedding -- guarantees digit-level separability by "
+                              "construction (trained for it), while genuine rotation-driven ambiguity (e.g. 6 vs 9) "
+                              "shows up naturally wherever the classifier itself struggles. Recommended over "
+                              "mnist-umap if digit separation isn't holding up. "
+                              "Both mnist-* modes require torchvision + internet access to download MNIST.")
     parser.add_argument("--digit-sep", type=float, default=8.0, help="[synthetic only]")
     parser.add_argument("--rot-sep", type=float, default=4.0, help="[synthetic only]")
     parser.add_argument("--noise-std", type=float, default=1.0, help="[synthetic only]")
     parser.add_argument("--mnist-root", type=str, default="./mnist_data", help="[mnist-umap only] download/cache dir for MNIST")
     parser.add_argument("--umap-neighbors", type=int, default=15, help="[mnist-umap only] UMAP n_neighbors")
     parser.add_argument("--umap-min-dist", type=float, default=0.1, help="[mnist-umap only] UMAP min_dist")
+    parser.add_argument("--supervise-by", type=str, default=None, choices=[None, "digit", "class"],
+                         help="[mnist-umap only] None: fully unsupervised (can fail to separate even digits if the fit "
+                              "is unstable). 'digit': semi-supervised to guarantee digit-level separability while "
+                              "leaving rotation structure to emerge naturally from real pixels -- recommended if you "
+                              "want genuine rotation-ambiguity (e.g. 6@180 vs 9@0) without risking a collapsed fit. "
+                              "'class': semi-supervised on full (digit,rotation) classes -- guarantees full separability "
+                              "but removes the rotation-ambiguity phenomenon.")
+    parser.add_argument("--umap-target-weight", type=float, default=0.5,
+                         help="[mnist-umap only, requires --supervise-by] 0=ignore labels, 1=weight labels heavily. Default 0.5.")
+    parser.add_argument("--cnn-epochs", type=int, default=8, help="[mnist-cnn only] training epochs for the digit-classification CNN")
+    parser.add_argument("--cnn-lr", type=float, default=1e-3, help="[mnist-cnn only]")
+    parser.add_argument("--cnn-batch-size", type=int, default=64, help="[mnist-cnn only]")
+    parser.add_argument("--cnn-val-fraction", type=float, default=0.15, help="[mnist-cnn only] held-out fraction for monitoring training (not a strict generalization test)")
+    parser.add_argument("--rotation-aux-weight", type=float, default=0.3,
+                         help="[mnist-cnn only] weight on an auxiliary rotation-prediction head, trained jointly with "
+                              "the main digit head. 0 = pure digit classifier (will become rotation-invariant, likely "
+                              "erasing rotation structure entirely). >0 keeps rotation-relevant information in the "
+                              "shared embedding. Default 0.3.")
     parser.add_argument("--pairs-per-sample", type=int, default=1, help="How many (anchor, partner) pairs to generate per base point (used by 'random'/'same-digit' modes; ignored by 'same-digit-exhaustive')")
     parser.add_argument("--positive-prob", type=float, default=0.5, help="Probability a generated pair is 'positive' under the chosen --pairing-mode (used by 'random'/'same-digit' modes; ignored by 'same-digit-exhaustive')")
     parser.add_argument("--pairs-per-combo", type=int, default=5, help="Pairs to draw per combination -- used by 'same-digit-exhaustive' and 'same-digit-custom' modes")
@@ -630,6 +885,22 @@ def main():
             mnist_root=args.mnist_root,
             umap_neighbors=args.umap_neighbors,
             umap_min_dist=args.umap_min_dist,
+            supervise_by=args.supervise_by,
+            umap_target_weight=args.umap_target_weight,
+        )
+    elif args.data_source == "mnist-cnn":
+        codes, labels, class_names, digit_idx, rot_idx = generate_embeddings_from_mnist_cnn(
+            digits=args.digits,
+            rotations=args.rotations,
+            samples_per_class=args.samples_per_class,
+            embed_dim=args.embed_dim,
+            seed=args.seed,
+            mnist_root=args.mnist_root,
+            cnn_epochs=args.cnn_epochs,
+            cnn_lr=args.cnn_lr,
+            cnn_batch_size=args.cnn_batch_size,
+            val_fraction=args.cnn_val_fraction,
+            rotation_aux_weight=args.rotation_aux_weight,
         )
     else:
         codes, labels, class_names, digit_idx, rot_idx = generate_embeddings(
