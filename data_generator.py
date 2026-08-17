@@ -122,6 +122,118 @@ def generate_embeddings(
     return codes, labels, class_names, digit_idx, rot_idx
 
 
+def generate_embeddings_from_mnist_umap(
+    digits,
+    rotations,
+    samples_per_class=200,
+    embed_dim=10,
+    seed=45,
+    mnist_root="./mnist_data",
+    umap_neighbors=15,
+    umap_min_dist=0.1,
+):
+    """Real-data alternative to generate_embeddings(). Pulls actual MNIST
+    digit images, applies each requested rotation, and fits UMAP on the
+    raw pixel vectors (all classes together, one fit) to produce the final
+    embedding.
+
+    Why this matters (vs. the synthetic generator above): generate_embeddings
+    assigns every digit and every rotation an arbitrary, mutually orthogonal
+    random direction -- by construction, "6 rotated 180" and "9 rotated 0"
+    are just as separable as any other pair, because nothing in that
+    generator ever looks at what a 6 or a 9 actually looks like. Here,
+    since UMAP is fit on real rotated pixel data, any genuine visual
+    ambiguity (rotated 6 vs 9, near-rotation-invariant digits like 0/1/8,
+    etc.) will show up as real proximity/overlap in the resulting
+    embedding space -- exactly the effect you can't get from the
+    synthetic generator.
+
+    Fitting UMAP ONCE across all requested (digit, rotation) combinations
+    together (rather than per-class) is what lets true cross-class
+    similarity surface -- if you fit UMAP separately per class, you
+    throw away exactly the information you're trying to preserve.
+
+    Returns the same 5-tuple as generate_embeddings(), so every pairing
+    function (build_pairs, build_pairs_same_digit,
+    build_pairs_same_digit_exhaustive, build_pairs_same_digit_custom)
+    works unchanged on top of it.
+
+    Requires `torchvision` (for the MNIST download) and `umap-learn`.
+    NOTE: downloading MNIST requires unrestricted internet access to
+    reach torchvision's hosting mirrors -- this will fail in network-
+    sandboxed environments and needs to be run somewhere with normal
+    internet access (e.g. Colab).
+    """
+    try:
+        import torchvision
+        import torchvision.transforms.functional as TF
+    except ImportError as e:
+        raise ImportError(
+            "generate_embeddings_from_mnist_umap requires torchvision. "
+            "Install with: pip install torchvision"
+        ) from e
+    try:
+        import umap
+    except ImportError as e:
+        raise ImportError(
+            "generate_embeddings_from_mnist_umap requires umap-learn. "
+            "Install with: pip install umap-learn"
+        ) from e
+
+    rng = np.random.default_rng(seed)
+
+    print(f"Loading MNIST (root={mnist_root}, download if needed)...")
+    dataset = torchvision.datasets.MNIST(root=mnist_root, train=True, download=True)
+
+    n_rots = len(rotations)
+    all_pixel_vectors = []
+    labels = []
+    digit_idx_list = []
+    rot_idx_list = []
+    class_names = []
+
+    class_idx = 0
+    for di, digit in enumerate(digits):
+        pool_mask = dataset.targets == digit
+        pool = dataset.data[pool_mask]  # (n_available, 28, 28) uint8
+        if len(pool) < samples_per_class:
+            raise ValueError(
+                f"Not enough MNIST images for digit {digit}: requested "
+                f"{samples_per_class}, only {len(pool)} available."
+            )
+        chosen = rng.choice(len(pool), size=samples_per_class, replace=False)
+        base_imgs = pool[chosen].float()  # (samples_per_class, 28, 28)
+
+        for ri, rot in enumerate(rotations):
+            rotated = torch.stack([
+                TF.rotate(img.unsqueeze(0), angle=float(rot)).squeeze(0)
+                for img in base_imgs
+            ])
+            flat = (rotated.view(samples_per_class, -1) / 255.0).numpy()
+            all_pixel_vectors.append(flat)
+            labels.append(np.full(samples_per_class, class_idx, dtype=np.int64))
+            digit_idx_list.append(np.full(samples_per_class, di, dtype=np.int64))
+            rot_idx_list.append(np.full(samples_per_class, ri, dtype=np.int64))
+            class_names.append(f"{digit}_{ri}")
+            class_idx += 1
+
+    all_pixel_vectors = np.concatenate(all_pixel_vectors, axis=0)  # (N, 784)
+    labels = np.concatenate(labels)
+    digit_idx = np.concatenate(digit_idx_list)
+    rot_idx = np.concatenate(rot_idx_list)
+
+    print(f"Fitting UMAP (n_components={embed_dim}, n_neighbors={umap_neighbors}, "
+          f"min_dist={umap_min_dist}) on {len(all_pixel_vectors)} rotated MNIST images...")
+    reducer = umap.UMAP(
+        n_components=embed_dim, n_neighbors=umap_neighbors, min_dist=umap_min_dist,
+        random_state=seed,
+    )
+    codes = reducer.fit_transform(all_pixel_vectors).astype(np.float32)
+
+    perm = rng.permutation(len(codes))
+    return codes[perm], labels[perm], class_names, digit_idx[perm], rot_idx[perm]
+
+
 # ---------------------------------------------------------------------------
 # Pair construction -- materializes actual (anchor, partner, z) triples
 # ---------------------------------------------------------------------------
@@ -478,9 +590,18 @@ def main():
     parser.add_argument("--rotations", type=int, nargs="+", default=[0, 90, 180, 270])
     parser.add_argument("--samples-per-class", type=int, default=200)
     parser.add_argument("--embed-dim", type=int, default=10)
-    parser.add_argument("--digit-sep", type=float, default=8.0)
-    parser.add_argument("--rot-sep", type=float, default=4.0)
-    parser.add_argument("--noise-std", type=float, default=1.0)
+    parser.add_argument("--data-source", type=str, default="synthetic", choices=["synthetic", "mnist-umap"],
+                         help="'synthetic': arbitrary orthogonal directions per digit/rotation -- guaranteed separable, "
+                              "cannot represent real visual ambiguity (e.g. 6@180 vs 9@0). "
+                              "'mnist-umap': real MNIST digit images, rotated, embedded via a single UMAP fit across all "
+                              "classes -- preserves genuine pixel-level similarity/ambiguity. Requires torchvision + umap-learn "
+                              "and internet access to download MNIST.")
+    parser.add_argument("--digit-sep", type=float, default=8.0, help="[synthetic only]")
+    parser.add_argument("--rot-sep", type=float, default=4.0, help="[synthetic only]")
+    parser.add_argument("--noise-std", type=float, default=1.0, help="[synthetic only]")
+    parser.add_argument("--mnist-root", type=str, default="./mnist_data", help="[mnist-umap only] download/cache dir for MNIST")
+    parser.add_argument("--umap-neighbors", type=int, default=15, help="[mnist-umap only] UMAP n_neighbors")
+    parser.add_argument("--umap-min-dist", type=float, default=0.1, help="[mnist-umap only] UMAP min_dist")
     parser.add_argument("--pairs-per-sample", type=int, default=1, help="How many (anchor, partner) pairs to generate per base point (used by 'random'/'same-digit' modes; ignored by 'same-digit-exhaustive')")
     parser.add_argument("--positive-prob", type=float, default=0.5, help="Probability a generated pair is 'positive' under the chosen --pairing-mode (used by 'random'/'same-digit' modes; ignored by 'same-digit-exhaustive')")
     parser.add_argument("--pairs-per-combo", type=int, default=5, help="Pairs to draw per combination -- used by 'same-digit-exhaustive' and 'same-digit-custom' modes")
@@ -499,16 +620,28 @@ def main():
     parser.add_argument("--out-dir", type=str, required=True)
     args = parser.parse_args()
 
-    codes, labels, class_names, digit_idx, rot_idx = generate_embeddings(
-        digits=args.digits,
-        rotations=args.rotations,
-        samples_per_class=args.samples_per_class,
-        embed_dim=args.embed_dim,
-        digit_sep=args.digit_sep,
-        rot_sep=args.rot_sep,
-        noise_std=args.noise_std,
-        seed=args.seed,
-    )
+    if args.data_source == "mnist-umap":
+        codes, labels, class_names, digit_idx, rot_idx = generate_embeddings_from_mnist_umap(
+            digits=args.digits,
+            rotations=args.rotations,
+            samples_per_class=args.samples_per_class,
+            embed_dim=args.embed_dim,
+            seed=args.seed,
+            mnist_root=args.mnist_root,
+            umap_neighbors=args.umap_neighbors,
+            umap_min_dist=args.umap_min_dist,
+        )
+    else:
+        codes, labels, class_names, digit_idx, rot_idx = generate_embeddings(
+            digits=args.digits,
+            rotations=args.rotations,
+            samples_per_class=args.samples_per_class,
+            embed_dim=args.embed_dim,
+            digit_sep=args.digit_sep,
+            rot_sep=args.rot_sep,
+            noise_std=args.noise_std,
+            seed=args.seed,
+        )
 
     if args.test_fraction > 0:
         rng = np.random.default_rng(args.seed)
@@ -592,6 +725,7 @@ def main():
             "noise_std": args.noise_std,
             "pairs_per_sample": args.pairs_per_sample,
             "positive_prob": args.positive_prob,
+            "data_source": args.data_source,
             "pairing_mode": args.pairing_mode,
             "rotation_pairs": parsed_rotation_pairs,
             "test_fraction": args.test_fraction,

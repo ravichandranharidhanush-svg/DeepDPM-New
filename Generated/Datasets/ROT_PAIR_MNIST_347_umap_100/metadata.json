@@ -1,0 +1,89 @@
+{
+  "n_classes": 12,
+  "class_names": [
+    "3_0",
+    "3_1",
+    "3_2",
+    "3_3",
+    "4_0",
+    "4_1",
+    "4_2",
+    "4_3",
+    "7_0",
+    "7_1",
+    "7_2",
+    "7_3"
+  ],
+  "digits": [
+    3,
+    4,
+    7
+  ],
+  "rotations": [
+    0,
+    90,
+    180,
+    270
+  ],
+  "samples_per_class": 100,
+  "embed_dim": 10,
+  "digit_sep": 8.0,
+  "rot_sep": 4.0,
+  "noise_std": 1.0,
+  "pairs_per_sample": 1,
+  "positive_prob": 0.5,
+  "data_source": "mnist-umap",
+  "pairing_mode": "same-digit-custom",
+  "rotation_pairs": [
+    [
+      0,
+      90
+    ],
+    [
+      0,
+      180
+    ],
+    [
+      0,
+      270
+    ],
+    [
+      90,
+      0
+    ],
+    [
+      90,
+      180
+    ],
+    [
+      90,
+      270
+    ],
+    [
+      180,
+      0
+    ],
+    [
+      180,
+      90
+    ],
+    [
+      180,
+      270
+    ],
+    [
+      270,
+      0
+    ],
+    [
+      270,
+      90
+    ],
+    [
+      270,
+      180
+    ]
+  ],
+  "test_fraction": 0.0,
+  "seed": 45
+}

@@ -33,7 +33,7 @@ import matplotlib.cm as cm
 from sklearn.metrics import silhouette_score
 
 
-def Visualize(out, digits=None, rotations=None):
+def Visualize(out, digits=None, rotations=None, reducer="pca"):
     data = torch.load(out + "/train_data.pt")          # (N, 2, D)
     labels = torch.load(out + "/train_labels.pt")       # (N,) class id
     pair_labels = torch.load(out + "/train_pair_labels.pt")  # (N,) 1.0/0.0 same-class
@@ -61,10 +61,30 @@ def Visualize(out, digits=None, rotations=None):
           f"Pair labels: {int(pair_labels.sum())} same / "
           f"{int((1 - pair_labels).sum())} different out of {len(pair_labels)} pairs.")
 
-    # ── Re-reduce to 2D just for plotting ──────────────────────────────────
-    import umap
-    reducer2d = umap.UMAP(n_components=2, random_state=42)
-    embs_2d = reducer2d.fit_transform(embs)   # (N, 2)
+    # ── Reduce to 2D just for plotting ──────────────────────────────────────
+    # NOTE: if `embs` was already produced by UMAP (e.g. from
+    # generate_embeddings_from_mnist_umap), running a SECOND UMAP here to
+    # get down to 2D compounds two nonlinear reductions -- UMAP distances
+    # aren't Euclidean-meaningful the way PCA's are, so re-embedding an
+    # already-UMAP-reduced space with another UMAP is a common way to wash
+    # out real structure, especially at smaller sample counts. Default to
+    # PCA (linear -- can't introduce a second layer of manifold distortion)
+    # so this plot reflects whether the SAVED embeddings are actually
+    # separable, not an artifact of the visualization step. Pass
+    # reducer="umap" to force UMAP instead (useful for direct raw-pixel or
+    # synthetic-Gaussian embeddings, which haven't already been through UMAP).
+    if embs.shape[1] == 2:
+        embs_2d = embs
+        print("embed_dim is already 2 -- plotting directly, no further reduction.")
+    elif reducer == "umap":
+        import umap
+        reducer2d = umap.UMAP(n_components=2, random_state=42)
+        embs_2d = reducer2d.fit_transform(embs)
+    else:
+        from sklearn.decomposition import PCA
+        reducer2d = PCA(n_components=2, random_state=42)
+        embs_2d = reducer2d.fit_transform(embs)
+        print(f"PCA explained variance (top 2 PCs): {reducer2d.explained_variance_ratio_.sum():.3f}")
 
     # ── Plot 1 : All classes ────────────────────────────────────────────────
     fig, axes = plt.subplots(1, 3, figsize=(20, 6))
@@ -134,5 +154,9 @@ def Visualize(out, digits=None, rotations=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Visualize a ROT_PAIR dataset's embedding separability.")
     parser.add_argument("--out", type=str, required=True, help="Directory containing train_data.pt / train_labels.pt / metadata.json")
+    parser.add_argument("--reducer", type=str, default="pca", choices=["pca", "umap"],
+                         help="2D reduction method for plotting. 'pca' (default) avoids compounding a second "
+                              "nonlinear reduction on top of embeddings that already went through UMAP. Use "
+                              "'umap' for embeddings that haven't been through UMAP yet (e.g. synthetic).")
     args = parser.parse_args()
-    Visualize(args.out)
+    Visualize(args.out, reducer=args.reducer)
