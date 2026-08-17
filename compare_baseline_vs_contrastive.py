@@ -243,8 +243,12 @@ def main():
     parser = argparse.ArgumentParser(description="Compare baseline vs. contrastive-enabled DeepDPM training.")
     parser.add_argument("--compare-only", action="store_true",
                          help="Skip running training; just parse+compare existing log files.")
-    parser.add_argument("--baseline-log", type=str, default="logs/baseline.log")
-    parser.add_argument("--treatment-log", type=str, default="logs/treatment.log")
+    parser.add_argument("--baseline-log", type=str, default=None,
+                         help="Path to save/read the baseline log. If not set and --compare-only is NOT used, "
+                              "defaults to logs/<exp_name_prefix>_baseline.log so different runs (e.g. different "
+                              "seeds) don't silently overwrite each other's logs. Required if --compare-only is set.")
+    parser.add_argument("--treatment-log", type=str, default=None,
+                         help="Path to save/read the treatment log. Same auto-derivation as --baseline-log.")
 
     # training args (only used unless --compare-only)
     parser.add_argument("--dir", type=str, help="Dataset directory (--dir passed to DeepDPM.py)")
@@ -264,6 +268,25 @@ def main():
                          help="If set, reports the first epoch each run's ACC reaches this value (convergence speed).")
 
     args = parser.parse_args()
+
+    if args.compare_only:
+        if args.baseline_log is None or args.treatment_log is None:
+            print("ERROR: --compare-only requires explicit --baseline-log and --treatment-log paths "
+                  "(there's no training run here to derive a default from).")
+            sys.exit(1)
+    else:
+        # Auto-derive from exp_name_prefix if not explicitly given -- this is
+        # what prevents different runs (e.g. different seeds) from silently
+        # overwriting each other's logs at a shared default path.
+        if args.baseline_log is None:
+            args.baseline_log = f"logs/{args.exp_name_prefix}_baseline.log"
+        if args.treatment_log is None:
+            args.treatment_log = f"logs/{args.exp_name_prefix}_treatment.log"
+
+        if os.path.exists(args.baseline_log) or os.path.exists(args.treatment_log):
+            print(f"WARNING: {args.baseline_log} or {args.treatment_log} already exists and will be "
+                  f"OVERWRITTEN. If this is a different run (e.g. a new seed), use a different "
+                  f"--exp_name_prefix or pass --baseline-log/--treatment-log explicitly.")
 
     if not args.compare_only:
         if not args.dir:
