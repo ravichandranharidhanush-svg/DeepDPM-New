@@ -2,27 +2,2233 @@
   self.check_worker_number_rationality()
 Global seed set to 45
 Global seed set to 45
+GPU available: True, used: True
+TPU available: False, using: 0 TPU cores
+/usr/local/lib/python3.12/dist-packages/pytorch_lightning/utilities/distributed.py:68: UserWarning: you defined a validation_step but have no val_dataloader. Skipping validation loop
+  warnings.warn(*args, **kwargs)
+LOCAL_RANK: 0 - CUDA_VISIBLE_DEVICES: [0]
+
+  | Name              | Type              | Params
+--------------------------------------------------------
+0 | cluster_net       | MLP_Classifier    | 601   
+1 | subclustering_net | Subclustering_net | 652   
+--------------------------------------------------------
+1.3 K     Trainable params
+0         Non-trainable params
+1.3 K     Total params
+0.005     Total estimated model params size (MB)
 Test data not found! running only with train data
 Sequential()
-Traceback (most recent call last):
-  File "/content/DeepDPM-New/DeepDPM.py", line 456, in <module>
-    train_cluster_net()
-  File "/content/DeepDPM-New/DeepDPM.py", line 433, in train_cluster_net
-    trainer = pl.Trainer(logger=logger, max_epochs=args.max_epochs, gpus=args.gpus, num_sanity_val_steps=0, checkpoint_callback=checkpoint_callback, limit_train_batches=args.limit_train_batches, limit_val_batches=args.limit_val_batches)
-              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.12/dist-packages/pytorch_lightning/trainer/connectors/env_vars_connector.py", line 40, in insert_env_defaults
-    return fn(self, **kwargs)
-           ^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.12/dist-packages/pytorch_lightning/trainer/trainer.py", line 319, in __init__
-    self.accelerator_connector = AcceleratorConnector(
-                                 ^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.12/dist-packages/pytorch_lightning/trainer/connectors/accelerator_connector.py", line 117, in __init__
-    self.parallel_device_ids = device_parser.parse_gpu_ids(self.gpus)
-                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.12/dist-packages/pytorch_lightning/utilities/device_parser.py", line 76, in parse_gpu_ids
-    gpus = _sanitize_gpu_ids(gpus)
-           ^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/local/lib/python3.12/dist-packages/pytorch_lightning/utilities/device_parser.py", line 133, in _sanitize_gpu_ids
-    raise MisconfigurationException(
-pytorch_lightning.utilities.exceptions.MisconfigurationException: You requested GPUs: [0]
- But your machine only has: []
+
+Training: 0it [00:00, ?it/s]
+Training:   0%|          | 0/29 [00:00<?, ?it/s]
+Epoch 0:   0%|          | 0/29 [00:00<?, ?it/s] /usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+/usr/local/lib/python3.12/dist-packages/pytorch_lightning/utilities/distributed.py:68: UserWarning: training_step returned None if it was on purpose, ignore this warning...
+  warnings.warn(*args, **kwargs)
+
+Epoch 0:  69%|██████▉   | 20/29 [00:00<00:00, 69.17it/s]
+Epoch 0:  69%|██████▉   | 20/29 [00:00<00:00, 68.99it/s, loss=nan, v_num=]
+Epoch 0: 100%|██████████| 29/29 [00:00<00:00, 73.51it/s, loss=nan, v_num=]Initializing clusters params using Kmeans...
+
+Epoch 0:   0%|          | 0/29 [00:00<?, ?it/s, loss=nan, v_num=]         
+Epoch 1:   0%|          | 0/29 [00:00<?, ?it/s, loss=nan, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 1:  69%|██████▉   | 20/29 [00:00<00:00, 25.29it/s, loss=nan, v_num=]
+Epoch 1:  69%|██████▉   | 20/29 [00:00<00:00, 25.27it/s, loss=0, v_num=]  
+Epoch 1: 100%|██████████| 29/29 [00:00<00:00, 29.73it/s, loss=0, v_num=]
+Epoch 1:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 2:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 2:  69%|██████▉   | 20/29 [00:00<00:00, 42.82it/s, loss=0, v_num=]
+Epoch 2:  69%|██████▉   | 20/29 [00:00<00:00, 42.74it/s, loss=0, v_num=]
+Epoch 2: 100%|██████████| 29/29 [00:00<00:00, 42.75it/s, loss=0, v_num=]
+Epoch 2:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 3:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 3:  69%|██████▉   | 20/29 [00:00<00:00, 44.45it/s, loss=0, v_num=]
+Epoch 3:  69%|██████▉   | 20/29 [00:00<00:00, 44.38it/s, loss=0, v_num=]
+Epoch 3: 100%|██████████| 29/29 [00:00<00:00, 43.94it/s, loss=0, v_num=]
+Epoch 3:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 4:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 4:  69%|██████▉   | 20/29 [00:00<00:00, 42.15it/s, loss=0, v_num=]
+Epoch 4:  69%|██████▉   | 20/29 [00:00<00:00, 42.08it/s, loss=0, v_num=]
+Epoch 4: 100%|██████████| 29/29 [00:00<00:00, 42.31it/s, loss=0, v_num=]
+Epoch 4:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 5:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 5:  69%|██████▉   | 20/29 [00:00<00:00, 42.83it/s, loss=0, v_num=]
+Epoch 5:  69%|██████▉   | 20/29 [00:00<00:00, 42.77it/s, loss=0, v_num=]
+Epoch 5: 100%|██████████| 29/29 [00:00<00:00, 42.30it/s, loss=0, v_num=]Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+
+Epoch 5:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 6:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 6:  69%|██████▉   | 20/29 [00:00<00:00, 44.06it/s, loss=0, v_num=]
+Epoch 6:  69%|██████▉   | 20/29 [00:00<00:00, 44.00it/s, loss=0, v_num=]
+Epoch 6: 100%|██████████| 29/29 [00:00<00:00, 43.55it/s, loss=0, v_num=]
+Epoch 6:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 7:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 7:  69%|██████▉   | 20/29 [00:00<00:00, 43.15it/s, loss=0, v_num=]
+Epoch 7:  69%|██████▉   | 20/29 [00:00<00:00, 43.09it/s, loss=0, v_num=]
+Epoch 7: 100%|██████████| 29/29 [00:00<00:00, 41.75it/s, loss=0, v_num=]
+Epoch 7:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 8:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 8:  69%|██████▉   | 20/29 [00:00<00:00, 28.63it/s, loss=0, v_num=]
+Epoch 8:  69%|██████▉   | 20/29 [00:00<00:00, 28.59it/s, loss=0, v_num=]
+Epoch 8: 100%|██████████| 29/29 [00:01<00:00, 27.64it/s, loss=0, v_num=]
+Epoch 8:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 9:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 9:  69%|██████▉   | 20/29 [00:00<00:00, 30.37it/s, loss=0, v_num=]
+Epoch 9:  69%|██████▉   | 20/29 [00:00<00:00, 30.33it/s, loss=0, v_num=]
+Epoch 9: 100%|██████████| 29/29 [00:00<00:00, 29.42it/s, loss=0, v_num=]
+Epoch 9:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 10:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 10:  69%|██████▉   | 20/29 [00:00<00:00, 28.22it/s, loss=0, v_num=]
+Epoch 10:  69%|██████▉   | 20/29 [00:00<00:00, 28.19it/s, loss=0, v_num=]
+Epoch 10: 100%|██████████| 29/29 [00:00<00:00, 30.41it/s, loss=0, v_num=]Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+
+Epoch 10:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 11:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 11:  69%|██████▉   | 20/29 [00:00<00:00, 45.23it/s, loss=0, v_num=]
+Epoch 11:  69%|██████▉   | 20/29 [00:00<00:00, 45.17it/s, loss=0, v_num=]
+Epoch 11: 100%|██████████| 29/29 [00:00<00:00, 44.51it/s, loss=0, v_num=]
+Epoch 11:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 12:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 12:  69%|██████▉   | 20/29 [00:00<00:00, 43.25it/s, loss=0, v_num=]
+Epoch 12:  69%|██████▉   | 20/29 [00:00<00:00, 43.19it/s, loss=0, v_num=]
+Epoch 12: 100%|██████████| 29/29 [00:00<00:00, 43.08it/s, loss=0, v_num=]
+Epoch 12:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 13:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 13:  69%|██████▉   | 20/29 [00:00<00:00, 43.03it/s, loss=0, v_num=]
+Epoch 13:  69%|██████▉   | 20/29 [00:00<00:00, 42.97it/s, loss=0, v_num=]
+Epoch 13: 100%|██████████| 29/29 [00:00<00:00, 42.73it/s, loss=0, v_num=]
+Epoch 13:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 14:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 14:  69%|██████▉   | 20/29 [00:00<00:00, 44.23it/s, loss=0, v_num=]
+Epoch 14:  69%|██████▉   | 20/29 [00:00<00:00, 44.16it/s, loss=0, v_num=]
+Epoch 14: 100%|██████████| 29/29 [00:00<00:00, 43.91it/s, loss=0, v_num=]
+Epoch 14:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 15:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 15:  69%|██████▉   | 20/29 [00:00<00:00, 41.62it/s, loss=0, v_num=]
+Epoch 15:  69%|██████▉   | 20/29 [00:00<00:00, 41.55it/s, loss=0, v_num=]
+Epoch 15: 100%|██████████| 29/29 [00:00<00:00, 42.16it/s, loss=0, v_num=]Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+
+Epoch 15:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 16:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 16:  69%|██████▉   | 20/29 [00:00<00:00, 43.67it/s, loss=0, v_num=]
+Epoch 16:  69%|██████▉   | 20/29 [00:00<00:00, 43.61it/s, loss=0, v_num=]
+Epoch 16: 100%|██████████| 29/29 [00:00<00:00, 42.82it/s, loss=0, v_num=]
+Epoch 16:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 17:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 17:  69%|██████▉   | 20/29 [00:00<00:00, 43.78it/s, loss=0, v_num=]
+Epoch 17:  69%|██████▉   | 20/29 [00:00<00:00, 43.72it/s, loss=0, v_num=]
+Epoch 17: 100%|██████████| 29/29 [00:00<00:00, 43.93it/s, loss=0, v_num=]
+Epoch 17:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 18:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 18:  69%|██████▉   | 20/29 [00:00<00:00, 42.97it/s, loss=0, v_num=]
+Epoch 18:  69%|██████▉   | 20/29 [00:00<00:00, 42.90it/s, loss=0, v_num=]
+Epoch 18: 100%|██████████| 29/29 [00:00<00:00, 42.45it/s, loss=0, v_num=]
+Epoch 18:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 19:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 19:  69%|██████▉   | 20/29 [00:00<00:00, 45.06it/s, loss=0, v_num=]
+Epoch 19:  69%|██████▉   | 20/29 [00:00<00:00, 44.99it/s, loss=0, v_num=]
+Epoch 19: 100%|██████████| 29/29 [00:00<00:00, 43.39it/s, loss=0, v_num=]
+Epoch 19:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 20:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 20:  69%|██████▉   | 20/29 [00:00<00:00, 45.04it/s, loss=0, v_num=]
+Epoch 20:  69%|██████▉   | 20/29 [00:00<00:00, 44.97it/s, loss=0, v_num=]
+Epoch 20: 100%|██████████| 29/29 [00:00<00:00, 45.34it/s, loss=0, v_num=]Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+
+Epoch 20:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 21:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 21:  69%|██████▉   | 20/29 [00:00<00:00, 41.34it/s, loss=0, v_num=]
+Epoch 21:  69%|██████▉   | 20/29 [00:00<00:00, 41.28it/s, loss=0, v_num=]
+Epoch 21: 100%|██████████| 29/29 [00:00<00:00, 42.12it/s, loss=0, v_num=]
+Epoch 21:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 22:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 22:  69%|██████▉   | 20/29 [00:00<00:00, 44.37it/s, loss=0, v_num=]
+Epoch 22:  69%|██████▉   | 20/29 [00:00<00:00, 44.31it/s, loss=0, v_num=]
+Epoch 22: 100%|██████████| 29/29 [00:00<00:00, 43.16it/s, loss=0, v_num=]
+Epoch 22:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 23:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 23:  69%|██████▉   | 20/29 [00:00<00:00, 44.46it/s, loss=0, v_num=]
+Epoch 23:  69%|██████▉   | 20/29 [00:00<00:00, 44.39it/s, loss=0, v_num=]
+Epoch 23: 100%|██████████| 29/29 [00:00<00:00, 44.04it/s, loss=0, v_num=]
+Epoch 23:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 24:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 24:  69%|██████▉   | 20/29 [00:00<00:00, 41.91it/s, loss=0, v_num=]
+Epoch 24:  69%|██████▉   | 20/29 [00:00<00:00, 41.84it/s, loss=0, v_num=]
+Epoch 24: 100%|██████████| 29/29 [00:00<00:00, 41.82it/s, loss=0, v_num=]
+Epoch 24:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 25:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 25:  69%|██████▉   | 20/29 [00:00<00:00, 36.95it/s, loss=0, v_num=]
+Epoch 25:  69%|██████▉   | 20/29 [00:00<00:00, 36.91it/s, loss=0, v_num=]
+Epoch 25: 100%|██████████| 29/29 [00:00<00:00, 35.09it/s, loss=0, v_num=]Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+
+Epoch 25:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 26:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 26:  69%|██████▉   | 20/29 [00:00<00:00, 30.82it/s, loss=0, v_num=]
+Epoch 26:  69%|██████▉   | 20/29 [00:00<00:00, 30.79it/s, loss=0, v_num=]
+Epoch 26: 100%|██████████| 29/29 [00:00<00:00, 29.14it/s, loss=0, v_num=]
+Epoch 26:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 27:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 27:  69%|██████▉   | 20/29 [00:00<00:00, 31.12it/s, loss=0, v_num=]
+Epoch 27:  69%|██████▉   | 20/29 [00:00<00:00, 31.08it/s, loss=0, v_num=]
+Epoch 27: 100%|██████████| 29/29 [00:00<00:00, 29.75it/s, loss=0, v_num=]
+Epoch 27:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 28:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 28:  69%|██████▉   | 20/29 [00:00<00:00, 34.64it/s, loss=0, v_num=]
+Epoch 28:  69%|██████▉   | 20/29 [00:00<00:00, 34.60it/s, loss=0, v_num=]
+Epoch 28: 100%|██████████| 29/29 [00:00<00:00, 36.98it/s, loss=0, v_num=]
+Epoch 28:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 29:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 29:  69%|██████▉   | 20/29 [00:00<00:00, 42.74it/s, loss=0, v_num=]
+Epoch 29:  69%|██████▉   | 20/29 [00:00<00:00, 42.68it/s, loss=0, v_num=]
+Epoch 29: 100%|██████████| 29/29 [00:00<00:00, 42.77it/s, loss=0, v_num=]
+Epoch 29:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 30:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 30:  69%|██████▉   | 20/29 [00:00<00:00, 44.48it/s, loss=0, v_num=]
+Epoch 30:  69%|██████▉   | 20/29 [00:00<00:00, 44.41it/s, loss=0, v_num=]
+Epoch 30: 100%|██████████| 29/29 [00:00<00:00, 40.23it/s, loss=0, v_num=]Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+
+Epoch 30:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 31:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 31:  69%|██████▉   | 20/29 [00:00<00:00, 42.63it/s, loss=0, v_num=]
+Epoch 31:  69%|██████▉   | 20/29 [00:00<00:00, 42.57it/s, loss=0, v_num=]
+Epoch 31: 100%|██████████| 29/29 [00:00<00:00, 41.29it/s, loss=0, v_num=]
+Epoch 31:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 32:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 32:  69%|██████▉   | 20/29 [00:00<00:00, 41.72it/s, loss=0, v_num=]
+Epoch 32:  69%|██████▉   | 20/29 [00:00<00:00, 41.66it/s, loss=0, v_num=]
+Epoch 32: 100%|██████████| 29/29 [00:00<00:00, 41.67it/s, loss=0, v_num=]
+Epoch 32:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 33:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 33:  69%|██████▉   | 20/29 [00:00<00:00, 42.84it/s, loss=0, v_num=]
+Epoch 33:  69%|██████▉   | 20/29 [00:00<00:00, 42.79it/s, loss=0, v_num=]
+Epoch 33: 100%|██████████| 29/29 [00:00<00:00, 42.85it/s, loss=0, v_num=]
+Epoch 33:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 34:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 34:  69%|██████▉   | 20/29 [00:00<00:00, 42.85it/s, loss=0, v_num=]
+Epoch 34:  69%|██████▉   | 20/29 [00:00<00:00, 42.79it/s, loss=0, v_num=]
+Epoch 34: 100%|██████████| 29/29 [00:00<00:00, 42.94it/s, loss=0, v_num=]
+Epoch 34:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 35:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 35:  69%|██████▉   | 20/29 [00:00<00:00, 41.20it/s, loss=0, v_num=]
+Epoch 35:  69%|██████▉   | 20/29 [00:00<00:00, 41.15it/s, loss=0, v_num=]
+Epoch 35: 100%|██████████| 29/29 [00:00<00:00, 41.01it/s, loss=0, v_num=]Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+
+Epoch 35:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 36:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 36:  69%|██████▉   | 20/29 [00:00<00:00, 41.30it/s, loss=0, v_num=]
+Epoch 36:  69%|██████▉   | 20/29 [00:00<00:00, 41.24it/s, loss=0, v_num=]
+Epoch 36: 100%|██████████| 29/29 [00:00<00:00, 41.60it/s, loss=0, v_num=]
+Epoch 36:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 37:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 37:  69%|██████▉   | 20/29 [00:00<00:00, 41.78it/s, loss=0, v_num=]
+Epoch 37:  69%|██████▉   | 20/29 [00:00<00:00, 41.72it/s, loss=0, v_num=]
+Epoch 37: 100%|██████████| 29/29 [00:00<00:00, 41.06it/s, loss=0, v_num=]
+Epoch 37:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 38:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 38:  69%|██████▉   | 20/29 [00:00<00:00, 42.88it/s, loss=0, v_num=]
+Epoch 38:  69%|██████▉   | 20/29 [00:00<00:00, 42.81it/s, loss=0, v_num=]
+Epoch 38: 100%|██████████| 29/29 [00:00<00:00, 42.42it/s, loss=0, v_num=]
+Epoch 38:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 39:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 39:  69%|██████▉   | 20/29 [00:00<00:00, 42.41it/s, loss=0, v_num=]
+Epoch 39:  69%|██████▉   | 20/29 [00:00<00:00, 42.36it/s, loss=0, v_num=]
+Epoch 39: 100%|██████████| 29/29 [00:00<00:00, 41.91it/s, loss=0, v_num=]
+Epoch 39:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 40:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 40:  69%|██████▉   | 20/29 [00:00<00:00, 43.26it/s, loss=0, v_num=]
+Epoch 40:  69%|██████▉   | 20/29 [00:00<00:00, 43.20it/s, loss=0, v_num=]
+Epoch 40: 100%|██████████| 29/29 [00:00<00:00, 41.15it/s, loss=0, v_num=]Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+
+Epoch 40:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 41:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 41:  69%|██████▉   | 20/29 [00:00<00:00, 41.60it/s, loss=0, v_num=]
+Epoch 41:  69%|██████▉   | 20/29 [00:00<00:00, 41.54it/s, loss=0, v_num=]
+Epoch 41: 100%|██████████| 29/29 [00:00<00:00, 41.57it/s, loss=0, v_num=]
+Epoch 41:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 42:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 42:  69%|██████▉   | 20/29 [00:00<00:00, 35.40it/s, loss=0, v_num=]
+Epoch 42:  69%|██████▉   | 20/29 [00:00<00:00, 35.35it/s, loss=0, v_num=]
+Epoch 42: 100%|██████████| 29/29 [00:00<00:00, 32.66it/s, loss=0, v_num=]
+Epoch 42:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 43:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 43:  69%|██████▉   | 20/29 [00:00<00:00, 30.82it/s, loss=0, v_num=]
+Epoch 43:  69%|██████▉   | 20/29 [00:00<00:00, 30.78it/s, loss=0, v_num=]
+Epoch 43: 100%|██████████| 29/29 [00:00<00:00, 29.65it/s, loss=0, v_num=]
+Epoch 43:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 44:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]
+Epoch 44:  69%|██████▉   | 20/29 [00:00<00:00, 29.48it/s, loss=0, v_num=]
+Epoch 44:  69%|██████▉   | 20/29 [00:00<00:00, 29.44it/s, loss=0, v_num=]
+Epoch 44: 100%|██████████| 29/29 [00:00<00:00, 29.88it/s, loss=0, v_num=]
+Epoch 44:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]         
+Epoch 45:   0%|          | 0/29 [00:00<?, ?it/s, loss=0, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 45:  69%|██████▉   | 20/29 [00:00<00:00, 26.55it/s, loss=0, v_num=]
+Epoch 45:  69%|██████▉   | 20/29 [00:00<00:00, 26.52it/s, loss=0.545, v_num=]
+Epoch 45: 100%|██████████| 29/29 [00:01<00:00, 28.97it/s, loss=0.417, v_num=]Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+
+Epoch 45:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.417, v_num=]         
+Epoch 46:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.417, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 46:  69%|██████▉   | 20/29 [00:00<00:00, 37.29it/s, loss=0.417, v_num=]
+Epoch 46:  69%|██████▉   | 20/29 [00:00<00:00, 37.24it/s, loss=0.381, v_num=]
+Epoch 46: 100%|██████████| 29/29 [00:00<00:00, 36.92it/s, loss=0.382, v_num=]
+Epoch 46:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.382, v_num=]         
+Epoch 47:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.382, v_num=]
+Epoch 47:  69%|██████▉   | 20/29 [00:00<00:00, 37.83it/s, loss=0.382, v_num=]
+Epoch 47:  69%|██████▉   | 20/29 [00:00<00:00, 37.78it/s, loss=0.293, v_num=]
+Epoch 47: 100%|██████████| 29/29 [00:00<00:00, 36.64it/s, loss=0.297, v_num=]
+Epoch 47:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.297, v_num=]         
+Epoch 48:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.297, v_num=]
+Epoch 48:  69%|██████▉   | 20/29 [00:00<00:00, 38.15it/s, loss=0.297, v_num=]
+Epoch 48:  69%|██████▉   | 20/29 [00:00<00:00, 38.10it/s, loss=0.293, v_num=]
+Epoch 48: 100%|██████████| 29/29 [00:00<00:00, 37.61it/s, loss=0.292, v_num=]
+Epoch 48:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.292, v_num=]         
+Epoch 49:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.292, v_num=]
+Epoch 49:  69%|██████▉   | 20/29 [00:00<00:00, 36.76it/s, loss=0.292, v_num=]
+Epoch 49:  69%|██████▉   | 20/29 [00:00<00:00, 36.71it/s, loss=0.291, v_num=]
+Epoch 49: 100%|██████████| 29/29 [00:00<00:00, 36.86it/s, loss=0.292, v_num=]
+Epoch 49:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.292, v_num=]         
+Epoch 50:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.292, v_num=]
+Epoch 50:  69%|██████▉   | 20/29 [00:00<00:00, 37.14it/s, loss=0.292, v_num=]
+Epoch 50:  69%|██████▉   | 20/29 [00:00<00:00, 37.10it/s, loss=0.292, v_num=]
+Epoch 50: 100%|██████████| 29/29 [00:00<00:00, 36.83it/s, loss=0.287, v_num=]Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+Epoch 50 | NMI: 0.0000, ARI: 0.0000, ACC: 0.0833, current K: 1
+Confusion Matrix:
+[[300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]]
+
+Epoch 50:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.287, v_num=]         
+Epoch 51:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.287, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 51:  69%|██████▉   | 20/29 [00:00<00:00, 38.72it/s, loss=0.287, v_num=]
+Epoch 51:  69%|██████▉   | 20/29 [00:00<00:00, 38.67it/s, loss=0.292, v_num=]
+Epoch 51: 100%|██████████| 29/29 [00:00<00:00, 37.74it/s, loss=0.286, v_num=]
+Epoch 51:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.286, v_num=]         
+Epoch 52:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.286, v_num=]
+Epoch 52:  69%|██████▉   | 20/29 [00:00<00:00, 38.72it/s, loss=0.286, v_num=]
+Epoch 52:  69%|██████▉   | 20/29 [00:00<00:00, 38.67it/s, loss=0.294, v_num=]
+Epoch 52: 100%|██████████| 29/29 [00:00<00:00, 38.13it/s, loss=0.286, v_num=]
+Epoch 52:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.286, v_num=]         
+Epoch 53:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.286, v_num=]
+Epoch 53:  69%|██████▉   | 20/29 [00:00<00:00, 37.11it/s, loss=0.286, v_num=]
+Epoch 53:  69%|██████▉   | 20/29 [00:00<00:00, 37.07it/s, loss=0.292, v_num=]
+Epoch 53: 100%|██████████| 29/29 [00:00<00:00, 37.45it/s, loss=0.287, v_num=]
+Epoch 53:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.287, v_num=]         
+Epoch 54:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.287, v_num=]
+Epoch 54:  69%|██████▉   | 20/29 [00:00<00:00, 37.15it/s, loss=0.287, v_num=]
+Epoch 54:  69%|██████▉   | 20/29 [00:00<00:00, 37.10it/s, loss=0.294, v_num=]
+Epoch 54: 100%|██████████| 29/29 [00:00<00:00, 37.14it/s, loss=0.292, v_num=]
+Epoch 54:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.292, v_num=]         
+Epoch 55:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.292, v_num=]
+Epoch 55:  69%|██████▉   | 20/29 [00:00<00:00, 38.08it/s, loss=0.292, v_num=]
+Epoch 55:  69%|██████▉   | 20/29 [00:00<00:00, 38.04it/s, loss=0.284, v_num=]
+Epoch 55: 100%|██████████| 29/29 [00:00<00:00, 37.19it/s, loss=0.296, v_num=]/content/DeepDPM-New/src/clustering_models/clusternet_modules/clusternetasmodel.py:672: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  mus_ind_to_split = torch.nonzero(torch.tensor(split_decisions), as_tuple=False)
+Splitting clusters [0]
+Evaluating...
+NMI : 0.0, ARI: 0.0, ACC: 0.08333, current K: 1
+[Split] K updated → 2 clusters
+  [Epoch 55] losses at split → cluster_loss=0.0000, subcluster_loss=0.5828
+
+Epoch 55:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.296, v_num=]         
+Epoch 56:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.296, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 56:  69%|██████▉   | 20/29 [00:00<00:00, 34.68it/s, loss=0.296, v_num=]
+Epoch 56:  69%|██████▉   | 20/29 [00:00<00:00, 34.65it/s, loss=0.807, v_num=]
+Epoch 56: 100%|██████████| 29/29 [00:00<00:00, 34.87it/s, loss=0.51, v_num=] 
+Epoch 56:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.51, v_num=]         
+Epoch 57:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.51, v_num=]
+Epoch 57:  69%|██████▉   | 20/29 [00:00<00:00, 33.83it/s, loss=0.51, v_num=]
+Epoch 57:  69%|██████▉   | 20/29 [00:00<00:00, 33.79it/s, loss=0.384, v_num=]
+Epoch 57: 100%|██████████| 29/29 [00:01<00:00, 28.97it/s, loss=0.348, v_num=]
+Epoch 57:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.348, v_num=]         
+Epoch 58:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.348, v_num=]
+Epoch 58:  69%|██████▉   | 20/29 [00:00<00:00, 25.52it/s, loss=0.348, v_num=]
+Epoch 58:  69%|██████▉   | 20/29 [00:00<00:00, 25.49it/s, loss=0.281, v_num=]
+Epoch 58: 100%|██████████| 29/29 [00:01<00:00, 24.17it/s, loss=0.253, v_num=]
+Epoch 58:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.253, v_num=]         
+Epoch 59:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.253, v_num=]
+Epoch 59:  69%|██████▉   | 20/29 [00:00<00:00, 24.50it/s, loss=0.253, v_num=]
+Epoch 59:  69%|██████▉   | 20/29 [00:00<00:00, 24.47it/s, loss=0.216, v_num=]
+Epoch 59: 100%|██████████| 29/29 [00:01<00:00, 24.15it/s, loss=0.202, v_num=]
+Epoch 59:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.202, v_num=]         
+Epoch 60:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.202, v_num=]
+Epoch 60:  69%|██████▉   | 20/29 [00:00<00:00, 35.30it/s, loss=0.202, v_num=]
+Epoch 60:  69%|██████▉   | 20/29 [00:00<00:00, 35.26it/s, loss=0.182, v_num=]
+Epoch 60: 100%|██████████| 29/29 [00:00<00:00, 34.79it/s, loss=0.177, v_num=]Evaluating...
+NMI : 0.39027235606982125, ARI: 0.13259075166444795, ACC: 0.16667, current K: 2
+Epoch 60 | NMI: 0.3903, ARI: 0.1326, ACC: 0.1667, current K: 2
+Confusion Matrix:
+[[  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  4 296   0   0   0   0   0   0   0   0   0   0]
+ [  3 297   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [295   5   0   0   0   0   0   0   0   0   0   0]
+ [298   2   0   0   0   0   0   0   0   0   0   0]
+ [298   2   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]]
+
+Epoch 60:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.177, v_num=]         
+Epoch 61:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.177, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 61:  69%|██████▉   | 20/29 [00:00<00:00, 34.02it/s, loss=0.177, v_num=]
+Epoch 61:  69%|██████▉   | 20/29 [00:00<00:00, 33.98it/s, loss=0.164, v_num=]
+Epoch 61: 100%|██████████| 29/29 [00:00<00:00, 34.07it/s, loss=0.16, v_num=] 
+Epoch 61:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.16, v_num=]         
+Epoch 62:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.16, v_num=]
+Epoch 62:  69%|██████▉   | 20/29 [00:00<00:00, 34.25it/s, loss=0.16, v_num=]
+Epoch 62:  69%|██████▉   | 20/29 [00:00<00:00, 34.21it/s, loss=0.154, v_num=]
+Epoch 62: 100%|██████████| 29/29 [00:00<00:00, 33.79it/s, loss=0.148, v_num=]
+Epoch 62:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.148, v_num=]         
+Epoch 63:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.148, v_num=]
+Epoch 63:  69%|██████▉   | 20/29 [00:00<00:00, 34.08it/s, loss=0.148, v_num=]
+Epoch 63:  69%|██████▉   | 20/29 [00:00<00:00, 34.04it/s, loss=0.149, v_num=]
+Epoch 63: 100%|██████████| 29/29 [00:00<00:00, 33.88it/s, loss=0.146, v_num=]
+Epoch 63:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.146, v_num=]         
+Epoch 64:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.146, v_num=]
+Epoch 64:  69%|██████▉   | 20/29 [00:00<00:00, 34.72it/s, loss=0.146, v_num=]
+Epoch 64:  69%|██████▉   | 20/29 [00:00<00:00, 34.67it/s, loss=0.144, v_num=]
+Epoch 64: 100%|██████████| 29/29 [00:00<00:00, 33.70it/s, loss=0.138, v_num=]
+Epoch 64:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.138, v_num=]         
+Epoch 65:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.138, v_num=]
+Epoch 65:  69%|██████▉   | 20/29 [00:00<00:00, 34.47it/s, loss=0.138, v_num=]
+Epoch 65:  69%|██████▉   | 20/29 [00:00<00:00, 34.43it/s, loss=0.143, v_num=]
+Epoch 65: 100%|██████████| 29/29 [00:00<00:00, 33.24it/s, loss=0.143, v_num=]Evaluating...
+NMI : 0.3885277187277355, ARI: 0.13262557869404262, ACC: 0.16667, current K: 2
+
+Epoch 65:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.143, v_num=]         
+Epoch 66:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.143, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 66:  69%|██████▉   | 20/29 [00:00<00:00, 34.73it/s, loss=0.143, v_num=]
+Epoch 66:  69%|██████▉   | 20/29 [00:00<00:00, 34.70it/s, loss=0.141, v_num=]
+Epoch 66: 100%|██████████| 29/29 [00:00<00:00, 34.79it/s, loss=0.139, v_num=]
+Epoch 66:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.139, v_num=]         
+Epoch 67:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.139, v_num=]
+Epoch 67:  69%|██████▉   | 20/29 [00:00<00:00, 27.51it/s, loss=0.139, v_num=]
+Epoch 67:  69%|██████▉   | 20/29 [00:00<00:00, 27.48it/s, loss=0.137, v_num=]
+Epoch 67: 100%|██████████| 29/29 [00:00<00:00, 29.30it/s, loss=0.137, v_num=]
+Epoch 67:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.137, v_num=]         
+Epoch 68:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.137, v_num=]
+Epoch 68:  69%|██████▉   | 20/29 [00:00<00:00, 33.04it/s, loss=0.137, v_num=]
+Epoch 68:  69%|██████▉   | 20/29 [00:00<00:00, 33.00it/s, loss=0.135, v_num=]
+Epoch 68: 100%|██████████| 29/29 [00:00<00:00, 33.41it/s, loss=0.142, v_num=]
+Epoch 68:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.142, v_num=]         
+Epoch 69:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.142, v_num=]
+Epoch 69:  69%|██████▉   | 20/29 [00:00<00:00, 34.16it/s, loss=0.142, v_num=]
+Epoch 69:  69%|██████▉   | 20/29 [00:00<00:00, 34.12it/s, loss=0.134, v_num=]
+Epoch 69: 100%|██████████| 29/29 [00:00<00:00, 33.96it/s, loss=0.138, v_num=]
+Epoch 69:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.138, v_num=]         
+Epoch 70:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.138, v_num=]
+Epoch 70:  69%|██████▉   | 20/29 [00:00<00:00, 34.26it/s, loss=0.138, v_num=]
+Epoch 70:  69%|██████▉   | 20/29 [00:00<00:00, 34.22it/s, loss=0.134, v_num=]
+Epoch 70: 100%|██████████| 29/29 [00:00<00:00, 34.19it/s, loss=0.13, v_num=] Evaluating...
+NMI : 0.3885277187277355, ARI: 0.13262557869404262, ACC: 0.16667, current K: 2
+Epoch 70 | NMI: 0.3885, ARI: 0.1326, ACC: 0.1667, current K: 2
+Confusion Matrix:
+[[  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  4 296   0   0   0   0   0   0   0   0   0   0]
+ [  2 298   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [297   3   0   0   0   0   0   0   0   0   0   0]
+ [295   5   0   0   0   0   0   0   0   0   0   0]
+ [298   2   0   0   0   0   0   0   0   0   0   0]
+ [298   2   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]]
+
+Epoch 70:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]         
+Epoch 71:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 71:  69%|██████▉   | 20/29 [00:00<00:00, 27.06it/s, loss=0.13, v_num=]
+Epoch 71:  69%|██████▉   | 20/29 [00:00<00:00, 27.03it/s, loss=0.136, v_num=]
+Epoch 71: 100%|██████████| 29/29 [00:01<00:00, 26.01it/s, loss=0.139, v_num=]
+Epoch 71:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.139, v_num=]         
+Epoch 72:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.139, v_num=]
+Epoch 72:  69%|██████▉   | 20/29 [00:00<00:00, 24.58it/s, loss=0.139, v_num=]
+Epoch 72:  69%|██████▉   | 20/29 [00:00<00:00, 24.56it/s, loss=0.134, v_num=]
+Epoch 72: 100%|██████████| 29/29 [00:01<00:00, 23.80it/s, loss=0.136, v_num=]
+Epoch 72:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.136, v_num=]         
+Epoch 73:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.136, v_num=]
+Epoch 73:  69%|██████▉   | 20/29 [00:00<00:00, 22.78it/s, loss=0.136, v_num=]
+Epoch 73:  69%|██████▉   | 20/29 [00:00<00:00, 22.77it/s, loss=0.133, v_num=]
+Epoch 73: 100%|██████████| 29/29 [00:01<00:00, 25.27it/s, loss=0.132, v_num=]
+Epoch 73:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]         
+Epoch 74:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]
+Epoch 74:  69%|██████▉   | 20/29 [00:00<00:00, 33.46it/s, loss=0.132, v_num=]
+Epoch 74:  69%|██████▉   | 20/29 [00:00<00:00, 33.42it/s, loss=0.136, v_num=]
+Epoch 74: 100%|██████████| 29/29 [00:00<00:00, 33.74it/s, loss=0.131, v_num=]
+Epoch 74:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]         
+Epoch 75:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]
+Epoch 75:  69%|██████▉   | 20/29 [00:00<00:00, 34.31it/s, loss=0.131, v_num=]
+Epoch 75:  69%|██████▉   | 20/29 [00:00<00:00, 34.27it/s, loss=0.134, v_num=]
+Epoch 75: 100%|██████████| 29/29 [00:00<00:00, 34.05it/s, loss=0.132, v_num=]Evaluating...
+NMI : 0.3885277187277355, ARI: 0.13262557869404262, ACC: 0.16667, current K: 2
+
+Epoch 75:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]         
+Epoch 76:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 76:  69%|██████▉   | 20/29 [00:00<00:00, 34.14it/s, loss=0.132, v_num=]
+Epoch 76:  69%|██████▉   | 20/29 [00:00<00:00, 34.10it/s, loss=0.132, v_num=]
+Epoch 76: 100%|██████████| 29/29 [00:00<00:00, 33.48it/s, loss=0.132, v_num=]
+Epoch 76:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]         
+Epoch 77:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]
+Epoch 77:  69%|██████▉   | 20/29 [00:00<00:00, 33.98it/s, loss=0.132, v_num=]
+Epoch 77:  69%|██████▉   | 20/29 [00:00<00:00, 33.93it/s, loss=0.133, v_num=]
+Epoch 77: 100%|██████████| 29/29 [00:00<00:00, 32.95it/s, loss=0.129, v_num=]
+Epoch 77:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.129, v_num=]         
+Epoch 78:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.129, v_num=]
+Epoch 78:  69%|██████▉   | 20/29 [00:00<00:00, 35.01it/s, loss=0.129, v_num=]
+Epoch 78:  69%|██████▉   | 20/29 [00:00<00:00, 34.97it/s, loss=0.133, v_num=]
+Epoch 78: 100%|██████████| 29/29 [00:00<00:00, 34.54it/s, loss=0.135, v_num=]
+Epoch 78:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]         
+Epoch 79:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]
+Epoch 79:  69%|██████▉   | 20/29 [00:00<00:00, 34.29it/s, loss=0.135, v_num=]
+Epoch 79:  69%|██████▉   | 20/29 [00:00<00:00, 34.26it/s, loss=0.132, v_num=]
+Epoch 79: 100%|██████████| 29/29 [00:00<00:00, 34.07it/s, loss=0.135, v_num=]
+Epoch 79:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]         
+Epoch 80:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]
+Epoch 80:  69%|██████▉   | 20/29 [00:00<00:00, 33.51it/s, loss=0.135, v_num=]
+Epoch 80:  69%|██████▉   | 20/29 [00:00<00:00, 33.47it/s, loss=0.136, v_num=]
+Epoch 80: 100%|██████████| 29/29 [00:00<00:00, 33.31it/s, loss=0.128, v_num=]Evaluating...
+NMI : 0.3901281524177215, ARI: 0.1327749203220599, ACC: 0.16667, current K: 2
+Epoch 80 | NMI: 0.3901, ARI: 0.1328, ACC: 0.1667, current K: 2
+Confusion Matrix:
+[[  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  4 296   0   0   0   0   0   0   0   0   0   0]
+ [  2 298   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [295   5   0   0   0   0   0   0   0   0   0   0]
+ [298   2   0   0   0   0   0   0   0   0   0   0]
+ [298   2   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]]
+
+Epoch 80:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]         
+Epoch 81:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 81:  69%|██████▉   | 20/29 [00:00<00:00, 33.87it/s, loss=0.128, v_num=]
+Epoch 81:  69%|██████▉   | 20/29 [00:00<00:00, 33.83it/s, loss=0.133, v_num=]
+Epoch 81: 100%|██████████| 29/29 [00:00<00:00, 33.79it/s, loss=0.129, v_num=]
+Epoch 81:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.129, v_num=]         
+Epoch 82:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.129, v_num=]
+Epoch 82:  69%|██████▉   | 20/29 [00:00<00:00, 34.16it/s, loss=0.129, v_num=]
+Epoch 82:  69%|██████▉   | 20/29 [00:00<00:00, 34.12it/s, loss=0.135, v_num=]
+Epoch 82: 100%|██████████| 29/29 [00:00<00:00, 33.43it/s, loss=0.13, v_num=] 
+Epoch 82:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]         
+Epoch 83:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]
+Epoch 83:  69%|██████▉   | 20/29 [00:00<00:00, 34.51it/s, loss=0.13, v_num=]
+Epoch 83:  69%|██████▉   | 20/29 [00:00<00:00, 34.47it/s, loss=0.13, v_num=]
+Epoch 83: 100%|██████████| 29/29 [00:00<00:00, 33.65it/s, loss=0.138, v_num=]
+Epoch 83:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.138, v_num=]         
+Epoch 84:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.138, v_num=]
+Epoch 84:  69%|██████▉   | 20/29 [00:00<00:00, 34.15it/s, loss=0.138, v_num=]
+Epoch 84:  69%|██████▉   | 20/29 [00:00<00:00, 34.11it/s, loss=0.133, v_num=]
+Epoch 84: 100%|██████████| 29/29 [00:00<00:00, 32.16it/s, loss=0.127, v_num=]
+Epoch 84:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.127, v_num=]         
+Epoch 85:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.127, v_num=]
+Epoch 85:  69%|██████▉   | 20/29 [00:00<00:00, 24.92it/s, loss=0.127, v_num=]
+Epoch 85:  69%|██████▉   | 20/29 [00:00<00:00, 24.90it/s, loss=0.13, v_num=] 
+Epoch 85: 100%|██████████| 29/29 [00:01<00:00, 23.91it/s, loss=0.133, v_num=]Evaluating...
+NMI : 0.3891783277997523, ARI: 0.13251478560238383, ACC: 0.16667, current K: 2
+
+Epoch 85:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.133, v_num=]         
+Epoch 86:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.133, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 86:  69%|██████▉   | 20/29 [00:00<00:00, 24.15it/s, loss=0.133, v_num=]
+Epoch 86:  69%|██████▉   | 20/29 [00:00<00:00, 24.13it/s, loss=0.132, v_num=]
+Epoch 86: 100%|██████████| 29/29 [00:01<00:00, 23.55it/s, loss=0.124, v_num=]
+Epoch 86:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.124, v_num=]         
+Epoch 87:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.124, v_num=]
+Epoch 87:  69%|██████▉   | 20/29 [00:00<00:00, 29.42it/s, loss=0.124, v_num=]
+Epoch 87:  69%|██████▉   | 20/29 [00:00<00:00, 29.38it/s, loss=0.132, v_num=]
+Epoch 87: 100%|██████████| 29/29 [00:00<00:00, 29.97it/s, loss=0.13, v_num=] 
+Epoch 87:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]         
+Epoch 88:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]
+Epoch 88:  69%|██████▉   | 20/29 [00:00<00:00, 33.06it/s, loss=0.13, v_num=]
+Epoch 88:  69%|██████▉   | 20/29 [00:00<00:00, 33.03it/s, loss=0.133, v_num=]
+Epoch 88: 100%|██████████| 29/29 [00:00<00:00, 32.64it/s, loss=0.133, v_num=]
+Epoch 88:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.133, v_num=]         
+Epoch 89:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.133, v_num=]
+Epoch 89:  69%|██████▉   | 20/29 [00:00<00:00, 34.44it/s, loss=0.133, v_num=]
+Epoch 89:  69%|██████▉   | 20/29 [00:00<00:00, 34.40it/s, loss=0.128, v_num=]
+Epoch 89: 100%|██████████| 29/29 [00:00<00:00, 34.49it/s, loss=0.13, v_num=] 
+Epoch 89:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]         
+Epoch 90:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]
+Epoch 90:  69%|██████▉   | 20/29 [00:00<00:00, 33.56it/s, loss=0.13, v_num=]
+Epoch 90:  69%|██████▉   | 20/29 [00:00<00:00, 33.52it/s, loss=0.129, v_num=]
+Epoch 90: 100%|██████████| 29/29 [00:00<00:00, 33.67it/s, loss=0.135, v_num=]Evaluating...
+NMI : 0.3922129788714959, ARI: 0.13274095505774425, ACC: 0.16667, current K: 2
+Epoch 90 | NMI: 0.3922, ARI: 0.1327, ACC: 0.1667, current K: 2
+Confusion Matrix:
+[[  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  4 296   0   0   0   0   0   0   0   0   0   0]
+ [  3 297   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [295   5   0   0   0   0   0   0   0   0   0   0]
+ [298   2   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]]
+
+Epoch 90:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]         
+Epoch 91:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 91:  69%|██████▉   | 20/29 [00:00<00:00, 32.88it/s, loss=0.135, v_num=]
+Epoch 91:  69%|██████▉   | 20/29 [00:00<00:00, 32.84it/s, loss=0.13, v_num=] 
+Epoch 91: 100%|██████████| 29/29 [00:00<00:00, 33.21it/s, loss=0.135, v_num=]
+Epoch 91:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]         
+Epoch 92:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]
+Epoch 92:  69%|██████▉   | 20/29 [00:00<00:00, 33.57it/s, loss=0.135, v_num=]
+Epoch 92:  69%|██████▉   | 20/29 [00:00<00:00, 33.53it/s, loss=0.131, v_num=]
+Epoch 92: 100%|██████████| 29/29 [00:00<00:00, 33.34it/s, loss=0.134, v_num=]
+Epoch 92:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.134, v_num=]         
+Epoch 93:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.134, v_num=]
+Epoch 93:  69%|██████▉   | 20/29 [00:00<00:00, 33.97it/s, loss=0.134, v_num=]
+Epoch 93:  69%|██████▉   | 20/29 [00:00<00:00, 33.93it/s, loss=0.132, v_num=]
+Epoch 93: 100%|██████████| 29/29 [00:00<00:00, 33.59it/s, loss=0.131, v_num=]
+Epoch 93:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]         
+Epoch 94:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]
+Epoch 94:  69%|██████▉   | 20/29 [00:00<00:00, 34.21it/s, loss=0.131, v_num=]
+Epoch 94:  69%|██████▉   | 20/29 [00:00<00:00, 34.17it/s, loss=0.13, v_num=] 
+Epoch 94: 100%|██████████| 29/29 [00:00<00:00, 33.41it/s, loss=0.13, v_num=]
+Epoch 94:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]         
+Epoch 95:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]
+Epoch 95:  69%|██████▉   | 20/29 [00:00<00:00, 34.05it/s, loss=0.13, v_num=]
+Epoch 95:  69%|██████▉   | 20/29 [00:00<00:00, 34.01it/s, loss=0.136, v_num=]
+Epoch 95: 100%|██████████| 29/29 [00:00<00:00, 33.39it/s, loss=0.124, v_num=]Evaluating...
+NMI : 0.3922129788714959, ARI: 0.13274095505774425, ACC: 0.16667, current K: 2
+
+Epoch 95:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.124, v_num=]         
+Epoch 96:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.124, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 96:  69%|██████▉   | 20/29 [00:00<00:00, 34.50it/s, loss=0.124, v_num=]
+Epoch 96:  69%|██████▉   | 20/29 [00:00<00:00, 34.46it/s, loss=0.133, v_num=]
+Epoch 96: 100%|██████████| 29/29 [00:00<00:00, 34.10it/s, loss=0.127, v_num=]
+Epoch 96:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.127, v_num=]         
+Epoch 97:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.127, v_num=]
+Epoch 97:  69%|██████▉   | 20/29 [00:00<00:00, 32.90it/s, loss=0.127, v_num=]
+Epoch 97:  69%|██████▉   | 20/29 [00:00<00:00, 32.86it/s, loss=0.131, v_num=]
+Epoch 97: 100%|██████████| 29/29 [00:00<00:00, 32.67it/s, loss=0.128, v_num=]
+Epoch 97:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]         
+Epoch 98:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]
+Epoch 98:  69%|██████▉   | 20/29 [00:00<00:00, 30.46it/s, loss=0.128, v_num=]
+Epoch 98:  69%|██████▉   | 20/29 [00:00<00:00, 30.43it/s, loss=0.131, v_num=]
+Epoch 98: 100%|██████████| 29/29 [00:01<00:00, 27.79it/s, loss=0.132, v_num=]
+Epoch 98:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]         
+Epoch 99:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]
+Epoch 99:  69%|██████▉   | 20/29 [00:00<00:00, 22.71it/s, loss=0.132, v_num=]
+Epoch 99:  69%|██████▉   | 20/29 [00:00<00:00, 22.69it/s, loss=0.13, v_num=] 
+Epoch 99: 100%|██████████| 29/29 [00:01<00:00, 22.09it/s, loss=0.131, v_num=]
+Epoch 99:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]         
+Epoch 100:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]
+Epoch 100:  69%|██████▉   | 20/29 [00:00<00:00, 24.56it/s, loss=0.131, v_num=]
+Epoch 100:  69%|██████▉   | 20/29 [00:00<00:00, 24.53it/s, loss=0.133, v_num=]
+Epoch 100: 100%|██████████| 29/29 [00:01<00:00, 24.08it/s, loss=0.135, v_num=]Evaluating...
+NMI : 0.3922129788714959, ARI: 0.13274095505774425, ACC: 0.16667, current K: 2
+Epoch 100 | NMI: 0.3922, ARI: 0.1327, ACC: 0.1667, current K: 2
+Confusion Matrix:
+[[  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  4 296   0   0   0   0   0   0   0   0   0   0]
+ [  3 297   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [295   5   0   0   0   0   0   0   0   0   0   0]
+ [298   2   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]]
+
+Epoch 100:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]         
+Epoch 101:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 101:  69%|██████▉   | 20/29 [00:00<00:00, 28.28it/s, loss=0.135, v_num=]
+Epoch 101:  69%|██████▉   | 20/29 [00:00<00:00, 28.26it/s, loss=0.132, v_num=]
+Epoch 101: 100%|██████████| 29/29 [00:01<00:00, 28.82it/s, loss=0.128, v_num=]
+Epoch 101:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]         
+Epoch 102:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]
+Epoch 102:  69%|██████▉   | 20/29 [00:00<00:00, 32.71it/s, loss=0.128, v_num=]
+Epoch 102:  69%|██████▉   | 20/29 [00:00<00:00, 32.67it/s, loss=0.133, v_num=]
+Epoch 102: 100%|██████████| 29/29 [00:00<00:00, 32.55it/s, loss=0.132, v_num=]
+Epoch 102:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]         
+Epoch 103:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]
+Epoch 103:  69%|██████▉   | 20/29 [00:00<00:00, 32.08it/s, loss=0.132, v_num=]
+Epoch 103:  69%|██████▉   | 20/29 [00:00<00:00, 32.04it/s, loss=0.134, v_num=]
+Epoch 103: 100%|██████████| 29/29 [00:00<00:00, 32.11it/s, loss=0.128, v_num=]
+Epoch 103:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]         
+Epoch 104:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]
+Epoch 104:  69%|██████▉   | 20/29 [00:00<00:00, 32.02it/s, loss=0.128, v_num=]
+Epoch 104:  69%|██████▉   | 20/29 [00:00<00:00, 31.98it/s, loss=0.133, v_num=]
+Epoch 104: 100%|██████████| 29/29 [00:00<00:00, 31.95it/s, loss=0.126, v_num=]
+Epoch 104:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.126, v_num=]         
+Epoch 105:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.126, v_num=]
+Epoch 105:  69%|██████▉   | 20/29 [00:00<00:00, 32.82it/s, loss=0.126, v_num=]
+Epoch 105:  69%|██████▉   | 20/29 [00:00<00:00, 32.78it/s, loss=0.125, v_num=]
+Epoch 105: 100%|██████████| 29/29 [00:00<00:00, 32.69it/s, loss=0.132, v_num=]Evaluating...
+NMI : 0.39285918081875604, ARI: 0.1328118009552582, ACC: 0.16667, current K: 2
+
+Epoch 105:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]         
+Epoch 106:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 106:  69%|██████▉   | 20/29 [00:00<00:00, 34.14it/s, loss=0.132, v_num=]
+Epoch 106:  69%|██████▉   | 20/29 [00:00<00:00, 34.10it/s, loss=0.129, v_num=]
+Epoch 106: 100%|██████████| 29/29 [00:00<00:00, 33.94it/s, loss=0.135, v_num=]
+Epoch 106:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]         
+Epoch 107:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.135, v_num=]
+Epoch 107:  69%|██████▉   | 20/29 [00:00<00:00, 32.33it/s, loss=0.135, v_num=]
+Epoch 107:  69%|██████▉   | 20/29 [00:00<00:00, 32.30it/s, loss=0.131, v_num=]
+Epoch 107: 100%|██████████| 29/29 [00:00<00:00, 32.40it/s, loss=0.13, v_num=] 
+Epoch 107:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]         
+Epoch 108:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]
+Epoch 108:  69%|██████▉   | 20/29 [00:00<00:00, 34.39it/s, loss=0.13, v_num=]
+Epoch 108:  69%|██████▉   | 20/29 [00:00<00:00, 34.33it/s, loss=0.131, v_num=]
+Epoch 108: 100%|██████████| 29/29 [00:00<00:00, 33.45it/s, loss=0.131, v_num=]
+Epoch 108:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]         
+Epoch 109:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]
+Epoch 109:  69%|██████▉   | 20/29 [00:00<00:00, 34.19it/s, loss=0.131, v_num=]
+Epoch 109:  69%|██████▉   | 20/29 [00:00<00:00, 34.14it/s, loss=0.128, v_num=]
+Epoch 109: 100%|██████████| 29/29 [00:00<00:00, 33.42it/s, loss=0.136, v_num=]
+Epoch 109:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.136, v_num=]         
+Epoch 110:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.136, v_num=]
+Epoch 110:  69%|██████▉   | 20/29 [00:00<00:00, 34.83it/s, loss=0.136, v_num=]
+Epoch 110:  69%|██████▉   | 20/29 [00:00<00:00, 34.80it/s, loss=0.135, v_num=]
+Epoch 110: 100%|██████████| 29/29 [00:00<00:00, 34.89it/s, loss=0.128, v_num=]Evaluating...
+NMI : 0.39285918081875604, ARI: 0.1328118009552582, ACC: 0.16667, current K: 2
+Epoch 110 | NMI: 0.3929, ARI: 0.1328, ACC: 0.1667, current K: 2
+Confusion Matrix:
+[[  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  0 300   0   0   0   0   0   0   0   0   0   0]
+ [  4 296   0   0   0   0   0   0   0   0   0   0]
+ [  3 297   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [296   4   0   0   0   0   0   0   0   0   0   0]
+ [298   2   0   0   0   0   0   0   0   0   0   0]
+ [299   1   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]
+ [300   0   0   0   0   0   0   0   0   0   0   0]]
+
+Epoch 110:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]         
+Epoch 111:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 111:  69%|██████▉   | 20/29 [00:00<00:00, 33.37it/s, loss=0.128, v_num=]
+Epoch 111:  69%|██████▉   | 20/29 [00:00<00:00, 33.33it/s, loss=0.131, v_num=]
+Epoch 111: 100%|██████████| 29/29 [00:00<00:00, 33.64it/s, loss=0.126, v_num=]
+Epoch 111:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.126, v_num=]         
+Epoch 112:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.126, v_num=]
+Epoch 112:  69%|██████▉   | 20/29 [00:00<00:00, 25.38it/s, loss=0.126, v_num=]
+Epoch 112:  69%|██████▉   | 20/29 [00:00<00:00, 25.36it/s, loss=0.128, v_num=]
+Epoch 112: 100%|██████████| 29/29 [00:01<00:00, 24.32it/s, loss=0.128, v_num=]
+Epoch 112:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]         
+Epoch 113:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]
+Epoch 113:  69%|██████▉   | 20/29 [00:00<00:00, 25.22it/s, loss=0.128, v_num=]
+Epoch 113:  69%|██████▉   | 20/29 [00:00<00:00, 25.19it/s, loss=0.127, v_num=]
+Epoch 113: 100%|██████████| 29/29 [00:01<00:00, 25.01it/s, loss=0.136, v_num=]
+Epoch 113:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.136, v_num=]         
+Epoch 114:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.136, v_num=]
+Epoch 114:  69%|██████▉   | 20/29 [00:00<00:00, 23.35it/s, loss=0.136, v_num=]
+Epoch 114:  69%|██████▉   | 20/29 [00:00<00:00, 23.34it/s, loss=0.127, v_num=]
+Epoch 114: 100%|██████████| 29/29 [00:01<00:00, 25.77it/s, loss=0.13, v_num=] 
+Epoch 114:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]         
+Epoch 115:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]
+Epoch 115:  69%|██████▉   | 20/29 [00:00<00:00, 33.74it/s, loss=0.13, v_num=]
+Epoch 115:  69%|██████▉   | 20/29 [00:00<00:00, 33.70it/s, loss=0.129, v_num=]
+Epoch 115: 100%|██████████| 29/29 [00:00<00:00, 33.61it/s, loss=0.131, v_num=]/content/DeepDPM-New/src/clustering_models/clusternet_modules/clusternetasmodel.py:672: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  mus_ind_to_split = torch.nonzero(torch.tensor(split_decisions), as_tuple=False)
+Splitting clusters [0 1]
+Evaluating...
+NMI : 0.39052239152930485, ARI: 0.13228727902209952, ACC: 0.16667, current K: 2
+[Split] K updated → 4 clusters
+  [Epoch 115] losses at split → cluster_loss=0.0036, subcluster_loss=0.2566
+
+Epoch 115:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]         
+Epoch 116:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 116:  69%|██████▉   | 20/29 [00:00<00:00, 27.83it/s, loss=0.131, v_num=]
+Epoch 116:  69%|██████▉   | 20/29 [00:00<00:00, 27.81it/s, loss=0.477, v_num=]
+Epoch 116: 100%|██████████| 29/29 [00:01<00:00, 27.14it/s, loss=0.416, v_num=]
+Epoch 116:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.416, v_num=]         
+Epoch 117:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.416, v_num=]
+Epoch 117:  69%|██████▉   | 20/29 [00:00<00:00, 27.81it/s, loss=0.416, v_num=]
+Epoch 117:  69%|██████▉   | 20/29 [00:00<00:00, 27.78it/s, loss=0.361, v_num=]
+Epoch 117: 100%|██████████| 29/29 [00:01<00:00, 27.84it/s, loss=0.34, v_num=] 
+Epoch 117:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.34, v_num=]         
+Epoch 118:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.34, v_num=]
+Epoch 118:  69%|██████▉   | 20/29 [00:00<00:00, 27.15it/s, loss=0.34, v_num=]
+Epoch 118:  69%|██████▉   | 20/29 [00:00<00:00, 27.12it/s, loss=0.311, v_num=]
+Epoch 118: 100%|██████████| 29/29 [00:01<00:00, 27.20it/s, loss=0.306, v_num=]
+Epoch 118:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.306, v_num=]         
+Epoch 119:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.306, v_num=]
+Epoch 119:  69%|██████▉   | 20/29 [00:00<00:00, 27.36it/s, loss=0.306, v_num=]
+Epoch 119:  69%|██████▉   | 20/29 [00:00<00:00, 27.33it/s, loss=0.28, v_num=] 
+Epoch 119: 100%|██████████| 29/29 [00:01<00:00, 27.14it/s, loss=0.231, v_num=]
+Epoch 119:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.231, v_num=]         
+Epoch 120:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.231, v_num=]
+Epoch 120:  69%|██████▉   | 20/29 [00:00<00:00, 28.33it/s, loss=0.231, v_num=]
+Epoch 120:  69%|██████▉   | 20/29 [00:00<00:00, 28.30it/s, loss=0.216, v_num=]
+Epoch 120: 100%|██████████| 29/29 [00:01<00:00, 28.17it/s, loss=0.219, v_num=]Evaluating...
+NMI : 0.6038967828172858, ARI: 0.3370132660836892, ACC: 0.32222, current K: 4
+Epoch 120 | NMI: 0.6039, ARI: 0.3370, ACC: 0.3222, current K: 4
+Confusion Matrix:
+[[  2   0 293   5   0   0   0   0   0   0   0   0]
+ [  2   0  19 279   0   0   0   0   0   0   0   0]
+ [  4   2 284  10   0   0   0   0   0   0   0   0]
+ [  2   2   7 289   0   0   0   0   0   0   0   0]
+ [294   6   0   0   0   0   0   0   0   0   0   0]
+ [298   1   1   0   0   0   0   0   0   0   0   0]
+ [298   1   0   1   0   0   0   0   0   0   0   0]
+ [298   1   1   0   0   0   0   0   0   0   0   0]
+ [ 19 280   1   0   0   0   0   0   0   0   0   0]
+ [ 21 279   0   0   0   0   0   0   0   0   0   0]
+ [ 23 277   0   0   0   0   0   0   0   0   0   0]
+ [ 20 280   0   0   0   0   0   0   0   0   0   0]]
+
+Epoch 120:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.219, v_num=]         
+Epoch 121:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.219, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 121:  69%|██████▉   | 20/29 [00:00<00:00, 28.44it/s, loss=0.219, v_num=]
+Epoch 121:  69%|██████▉   | 20/29 [00:00<00:00, 28.42it/s, loss=0.213, v_num=]
+Epoch 121: 100%|██████████| 29/29 [00:01<00:00, 28.70it/s, loss=0.203, v_num=]
+Epoch 121:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.203, v_num=]         
+Epoch 122:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.203, v_num=]
+Epoch 122:  69%|██████▉   | 20/29 [00:00<00:00, 28.95it/s, loss=0.203, v_num=]
+Epoch 122:  69%|██████▉   | 20/29 [00:00<00:00, 28.92it/s, loss=0.0898, v_num=]
+Epoch 122: 100%|██████████| 29/29 [00:01<00:00, 28.77it/s, loss=0.095, v_num=] 
+Epoch 122:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.095, v_num=]         
+Epoch 123:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.095, v_num=]
+Epoch 123:  69%|██████▉   | 20/29 [00:00<00:00, 28.86it/s, loss=0.095, v_num=]
+Epoch 123:  69%|██████▉   | 20/29 [00:00<00:00, 28.83it/s, loss=0.0929, v_num=]
+Epoch 123: 100%|██████████| 29/29 [00:01<00:00, 28.73it/s, loss=0.0937, v_num=]
+Epoch 123:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0937, v_num=]         
+Epoch 124:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0937, v_num=]
+Epoch 124:  69%|██████▉   | 20/29 [00:00<00:00, 23.60it/s, loss=0.0937, v_num=]
+Epoch 124:  69%|██████▉   | 20/29 [00:00<00:00, 23.58it/s, loss=0.1, v_num=]   
+Epoch 124: 100%|██████████| 29/29 [00:01<00:00, 21.91it/s, loss=0.101, v_num=]
+Epoch 124:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.101, v_num=]         
+Epoch 125:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.101, v_num=]
+Epoch 125:  69%|██████▉   | 20/29 [00:00<00:00, 20.75it/s, loss=0.101, v_num=]
+Epoch 125:  69%|██████▉   | 20/29 [00:00<00:00, 20.73it/s, loss=0.101, v_num=]
+Epoch 125: 100%|██████████| 29/29 [00:01<00:00, 20.82it/s, loss=0.106, v_num=]Evaluating...
+NMI : 0.5445318984468964, ARI: 0.28631021165312753, ACC: 0.28833, current K: 4
+
+Epoch 125:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]         
+Epoch 126:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 126:  69%|██████▉   | 20/29 [00:00<00:00, 23.45it/s, loss=0.106, v_num=]
+Epoch 126:  69%|██████▉   | 20/29 [00:00<00:00, 23.44it/s, loss=0.107, v_num=]
+Epoch 126: 100%|██████████| 29/29 [00:01<00:00, 24.83it/s, loss=0.0967, v_num=]
+Epoch 126:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0967, v_num=]         
+Epoch 127:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0967, v_num=]
+Epoch 127:  69%|██████▉   | 20/29 [00:00<00:00, 28.95it/s, loss=0.0967, v_num=]
+Epoch 127:  69%|██████▉   | 20/29 [00:00<00:00, 28.92it/s, loss=0.105, v_num=] 
+Epoch 127: 100%|██████████| 29/29 [00:01<00:00, 28.93it/s, loss=0.106, v_num=]
+Epoch 127:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]         
+Epoch 128:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]
+Epoch 128:  69%|██████▉   | 20/29 [00:00<00:00, 27.87it/s, loss=0.106, v_num=]
+Epoch 128:  69%|██████▉   | 20/29 [00:00<00:00, 27.85it/s, loss=0.107, v_num=]
+Epoch 128: 100%|██████████| 29/29 [00:01<00:00, 27.56it/s, loss=0.108, v_num=]
+Epoch 128:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.108, v_num=]         
+Epoch 129:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.108, v_num=]
+Epoch 129:  69%|██████▉   | 20/29 [00:00<00:00, 28.76it/s, loss=0.108, v_num=]
+Epoch 129:  69%|██████▉   | 20/29 [00:00<00:00, 28.73it/s, loss=0.106, v_num=]
+Epoch 129: 100%|██████████| 29/29 [00:01<00:00, 28.42it/s, loss=0.105, v_num=]
+Epoch 129:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]         
+Epoch 130:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]
+Epoch 130:  69%|██████▉   | 20/29 [00:00<00:00, 28.08it/s, loss=0.105, v_num=]
+Epoch 130:  69%|██████▉   | 20/29 [00:00<00:00, 28.05it/s, loss=0.109, v_num=]
+Epoch 130: 100%|██████████| 29/29 [00:01<00:00, 28.44it/s, loss=0.108, v_num=]Evaluating...
+NMI : 0.5351386386244974, ARI: 0.27732870047366504, ACC: 0.265, current K: 4
+Epoch 130 | NMI: 0.5351, ARI: 0.2773, ACC: 0.2650, current K: 4
+Confusion Matrix:
+[[  0   0  85 215   0   0   0   0   0   0   0   0]
+ [  1   0  11 288   0   0   0   0   0   0   0   0]
+ [  3   2  61 234   0   0   0   0   0   0   0   0]
+ [  1   3   7 289   0   0   0   0   0   0   0   0]
+ [294   6   0   0   0   0   0   0   0   0   0   0]
+ [298   1   0   1   0   0   0   0   0   0   0   0]
+ [297   1   1   1   0   0   0   0   0   0   0   0]
+ [297   1   2   0   0   0   0   0   0   0   0   0]
+ [ 21 278   1   0   0   0   0   0   0   0   0   0]
+ [ 21 279   0   0   0   0   0   0   0   0   0   0]
+ [ 22 278   0   0   0   0   0   0   0   0   0   0]
+ [ 18 282   0   0   0   0   0   0   0   0   0   0]]
+
+Epoch 130:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.108, v_num=]         
+Epoch 131:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.108, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 131:  69%|██████▉   | 20/29 [00:00<00:00, 27.89it/s, loss=0.108, v_num=]
+Epoch 131:  69%|██████▉   | 20/29 [00:00<00:00, 27.86it/s, loss=0.105, v_num=]
+Epoch 131: 100%|██████████| 29/29 [00:01<00:00, 27.85it/s, loss=0.11, v_num=] 
+Epoch 131:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.11, v_num=]         
+Epoch 132:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.11, v_num=]
+Epoch 132:  69%|██████▉   | 20/29 [00:00<00:00, 28.71it/s, loss=0.11, v_num=]
+Epoch 132:  69%|██████▉   | 20/29 [00:00<00:00, 28.69it/s, loss=0.105, v_num=]
+Epoch 132: 100%|██████████| 29/29 [00:01<00:00, 28.83it/s, loss=0.108, v_num=]
+Epoch 132:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.108, v_num=]         
+Epoch 133:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.108, v_num=]
+Epoch 133:  69%|██████▉   | 20/29 [00:00<00:00, 28.87it/s, loss=0.108, v_num=]
+Epoch 133:  69%|██████▉   | 20/29 [00:00<00:00, 28.84it/s, loss=0.11, v_num=] 
+Epoch 133: 100%|██████████| 29/29 [00:01<00:00, 28.70it/s, loss=0.108, v_num=]
+Epoch 133:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.108, v_num=]         
+Epoch 134:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.108, v_num=]
+Epoch 134:  69%|██████▉   | 20/29 [00:00<00:00, 28.41it/s, loss=0.108, v_num=]
+Epoch 134:  69%|██████▉   | 20/29 [00:00<00:00, 28.38it/s, loss=0.114, v_num=]
+Epoch 134: 100%|██████████| 29/29 [00:01<00:00, 28.59it/s, loss=0.111, v_num=]
+Epoch 134:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.111, v_num=]         
+Epoch 135:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.111, v_num=]
+Epoch 135:  69%|██████▉   | 20/29 [00:00<00:00, 29.10it/s, loss=0.111, v_num=]
+Epoch 135:  69%|██████▉   | 20/29 [00:00<00:00, 29.07it/s, loss=0.111, v_num=]
+Epoch 135: 100%|██████████| 29/29 [00:01<00:00, 28.25it/s, loss=0.106, v_num=]Evaluating...
+NMI : 0.5343154649417484, ARI: 0.2783816751000335, ACC: 0.265, current K: 4
+
+Epoch 135:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]         
+Epoch 136:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 136:  69%|██████▉   | 20/29 [00:00<00:00, 20.71it/s, loss=0.106, v_num=]
+Epoch 136:  69%|██████▉   | 20/29 [00:00<00:00, 20.69it/s, loss=0.102, v_num=]
+Epoch 136: 100%|██████████| 29/29 [00:01<00:00, 20.19it/s, loss=0.106, v_num=]
+Epoch 136:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]         
+Epoch 137:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]
+Epoch 137:  69%|██████▉   | 20/29 [00:01<00:00, 19.38it/s, loss=0.106, v_num=]
+Epoch 137:  69%|██████▉   | 20/29 [00:01<00:00, 19.36it/s, loss=0.109, v_num=]
+Epoch 137: 100%|██████████| 29/29 [00:01<00:00, 19.83it/s, loss=0.103, v_num=]
+Epoch 137:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]         
+Epoch 138:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]
+Epoch 138:  69%|██████▉   | 20/29 [00:00<00:00, 27.83it/s, loss=0.103, v_num=]
+Epoch 138:  69%|██████▉   | 20/29 [00:00<00:00, 27.80it/s, loss=0.109, v_num=]
+Epoch 138: 100%|██████████| 29/29 [00:01<00:00, 28.08it/s, loss=0.109, v_num=]
+Epoch 138:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.109, v_num=]         
+Epoch 139:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.109, v_num=]
+Epoch 139:  69%|██████▉   | 20/29 [00:00<00:00, 28.07it/s, loss=0.109, v_num=]
+Epoch 139:  69%|██████▉   | 20/29 [00:00<00:00, 28.05it/s, loss=0.108, v_num=]
+Epoch 139: 100%|██████████| 29/29 [00:01<00:00, 28.23it/s, loss=0.0982, v_num=]
+Epoch 139:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0982, v_num=]         
+Epoch 140:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0982, v_num=]
+Epoch 140:  69%|██████▉   | 20/29 [00:00<00:00, 28.50it/s, loss=0.0982, v_num=]
+Epoch 140:  69%|██████▉   | 20/29 [00:00<00:00, 28.48it/s, loss=0.109, v_num=] 
+Epoch 140: 100%|██████████| 29/29 [00:01<00:00, 28.50it/s, loss=0.103, v_num=]Evaluating...
+NMI : 0.5303822588679662, ARI: 0.27669451416440277, ACC: 0.26222, current K: 4
+Epoch 140 | NMI: 0.5304, ARI: 0.2767, ACC: 0.2622, current K: 4
+Confusion Matrix:
+[[  0   0  78 222   0   0   0   0   0   0   0   0]
+ [  0   0  13 287   0   0   0   0   0   0   0   0]
+ [  2   2  58 238   0   0   0   0   0   0   0   0]
+ [  1   2  14 283   0   0   0   0   0   0   0   0]
+ [293   6   1   0   0   0   0   0   0   0   0   0]
+ [296   1   3   0   0   0   0   0   0   0   0   0]
+ [294   1   4   1   0   0   0   0   0   0   0   0]
+ [297   1   2   0   0   0   0   0   0   0   0   0]
+ [ 20 277   3   0   0   0   0   0   0   0   0   0]
+ [ 21 279   0   0   0   0   0   0   0   0   0   0]
+ [ 23 277   0   0   0   0   0   0   0   0   0   0]
+ [ 18 282   0   0   0   0   0   0   0   0   0   0]]
+
+Epoch 140:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]         
+Epoch 141:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 141:  69%|██████▉   | 20/29 [00:00<00:00, 28.65it/s, loss=0.103, v_num=]
+Epoch 141:  69%|██████▉   | 20/29 [00:00<00:00, 28.61it/s, loss=0.113, v_num=]
+Epoch 141: 100%|██████████| 29/29 [00:01<00:00, 28.93it/s, loss=0.109, v_num=]
+Epoch 141:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.109, v_num=]         
+Epoch 142:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.109, v_num=]
+Epoch 142:  69%|██████▉   | 20/29 [00:00<00:00, 28.52it/s, loss=0.109, v_num=]
+Epoch 142:  69%|██████▉   | 20/29 [00:00<00:00, 28.49it/s, loss=0.112, v_num=]
+Epoch 142: 100%|██████████| 29/29 [00:01<00:00, 28.46it/s, loss=0.113, v_num=]
+Epoch 142:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.113, v_num=]         
+Epoch 143:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.113, v_num=]
+Epoch 143:  69%|██████▉   | 20/29 [00:00<00:00, 28.80it/s, loss=0.113, v_num=]
+Epoch 143:  69%|██████▉   | 20/29 [00:00<00:00, 28.77it/s, loss=0.117, v_num=]
+Epoch 143: 100%|██████████| 29/29 [00:01<00:00, 28.75it/s, loss=0.114, v_num=]
+Epoch 143:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.114, v_num=]         
+Epoch 144:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.114, v_num=]
+Epoch 144:  69%|██████▉   | 20/29 [00:00<00:00, 28.48it/s, loss=0.114, v_num=]
+Epoch 144:  69%|██████▉   | 20/29 [00:00<00:00, 28.45it/s, loss=0.112, v_num=]
+Epoch 144: 100%|██████████| 29/29 [00:01<00:00, 28.83it/s, loss=0.128, v_num=]
+Epoch 144:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]         
+Epoch 145:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.128, v_num=]
+Epoch 145:  69%|██████▉   | 20/29 [00:00<00:00, 28.63it/s, loss=0.128, v_num=]
+Epoch 145:  69%|██████▉   | 20/29 [00:00<00:00, 28.60it/s, loss=0.119, v_num=]
+Epoch 145: 100%|██████████| 29/29 [00:01<00:00, 28.61it/s, loss=0.111, v_num=]Evaluating...
+NMI : 0.5209513658631392, ARI: 0.2759931132049231, ACC: 0.25639, current K: 4
+
+Epoch 145:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.111, v_num=]         
+Epoch 146:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.111, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 146:  69%|██████▉   | 20/29 [00:00<00:00, 27.55it/s, loss=0.111, v_num=]
+Epoch 146:  69%|██████▉   | 20/29 [00:00<00:00, 27.52it/s, loss=0.12, v_num=] 
+Epoch 146: 100%|██████████| 29/29 [00:01<00:00, 27.82it/s, loss=0.115, v_num=]
+Epoch 146:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.115, v_num=]         
+Epoch 147:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.115, v_num=]
+Epoch 147:  69%|██████▉   | 20/29 [00:00<00:00, 25.13it/s, loss=0.115, v_num=]
+Epoch 147:  69%|██████▉   | 20/29 [00:00<00:00, 25.11it/s, loss=0.125, v_num=]
+Epoch 147: 100%|██████████| 29/29 [00:01<00:00, 23.25it/s, loss=0.129, v_num=]
+Epoch 147:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.129, v_num=]         
+Epoch 148:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.129, v_num=]
+Epoch 148:  69%|██████▉   | 20/29 [00:00<00:00, 20.28it/s, loss=0.129, v_num=]
+Epoch 148:  69%|██████▉   | 20/29 [00:00<00:00, 20.27it/s, loss=0.127, v_num=]
+Epoch 148: 100%|██████████| 29/29 [00:01<00:00, 19.53it/s, loss=0.13, v_num=] 
+Epoch 148:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]         
+Epoch 149:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.13, v_num=]
+Epoch 149:  69%|██████▉   | 20/29 [00:00<00:00, 22.66it/s, loss=0.13, v_num=]
+Epoch 149:  69%|██████▉   | 20/29 [00:00<00:00, 22.64it/s, loss=0.133, v_num=]
+Epoch 149: 100%|██████████| 29/29 [00:01<00:00, 23.81it/s, loss=0.115, v_num=]
+Epoch 149:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.115, v_num=]         
+Epoch 150:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.115, v_num=]
+Epoch 150:  69%|██████▉   | 20/29 [00:00<00:00, 28.88it/s, loss=0.115, v_num=]
+Epoch 150:  69%|██████▉   | 20/29 [00:00<00:00, 28.85it/s, loss=0.116, v_num=]
+Epoch 150: 100%|██████████| 29/29 [00:01<00:00, 28.23it/s, loss=0.134, v_num=]Evaluating...
+NMI : 0.5138403841057674, ARI: 0.2752241231447042, ACC: 0.25306, current K: 4
+Epoch 150 | NMI: 0.5138, ARI: 0.2752, ACC: 0.2531, current K: 4
+Confusion Matrix:
+[[  0   0  55 245   0   0   0   0   0   0   0   0]
+ [  0   0  14 286   0   0   0   0   0   0   0   0]
+ [  1   1  45 253   0   0   0   0   0   0   0   0]
+ [  0   1  17 282   0   0   0   0   0   0   0   0]
+ [287   5   8   0   0   0   0   0   0   0   0   0]
+ [291   1   8   0   0   0   0   0   0   0   0   0]
+ [285   1  13   1   0   0   0   0   0   0   0   0]
+ [291   1   8   0   0   0   0   0   0   0   0   0]
+ [ 17 270  13   0   0   0   0   0   0   0   0   0]
+ [ 19 279   2   0   0   0   0   0   0   0   0   0]
+ [ 22 269   9   0   0   0   0   0   0   0   0   0]
+ [ 19 276   5   0   0   0   0   0   0   0   0   0]]
+
+Epoch 150:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.134, v_num=]         
+Epoch 151:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.134, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 151:  69%|██████▉   | 20/29 [00:00<00:00, 28.19it/s, loss=0.134, v_num=]
+Epoch 151:  69%|██████▉   | 20/29 [00:00<00:00, 28.15it/s, loss=0.131, v_num=]
+Epoch 151: 100%|██████████| 29/29 [00:01<00:00, 27.53it/s, loss=0.118, v_num=]
+Epoch 151:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.118, v_num=]         
+Epoch 152:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.118, v_num=]
+Epoch 152:  69%|██████▉   | 20/29 [00:00<00:00, 28.15it/s, loss=0.118, v_num=]
+Epoch 152:  69%|██████▉   | 20/29 [00:00<00:00, 28.13it/s, loss=0.127, v_num=]
+Epoch 152: 100%|██████████| 29/29 [00:01<00:00, 27.91it/s, loss=0.136, v_num=]
+Epoch 152:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.136, v_num=]         
+Epoch 153:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.136, v_num=]
+Epoch 153:  69%|██████▉   | 20/29 [00:00<00:00, 27.29it/s, loss=0.136, v_num=]
+Epoch 153:  69%|██████▉   | 20/29 [00:00<00:00, 27.27it/s, loss=0.125, v_num=]
+Epoch 153: 100%|██████████| 29/29 [00:01<00:00, 27.51it/s, loss=0.14, v_num=] 
+Epoch 153:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.14, v_num=]         
+Epoch 154:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.14, v_num=]
+Epoch 154:  69%|██████▉   | 20/29 [00:00<00:00, 28.30it/s, loss=0.14, v_num=]
+Epoch 154:  69%|██████▉   | 20/29 [00:00<00:00, 28.28it/s, loss=0.135, v_num=]
+Epoch 154: 100%|██████████| 29/29 [00:01<00:00, 28.34it/s, loss=0.134, v_num=]
+Epoch 154:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.134, v_num=]         
+Epoch 155:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.134, v_num=]
+Epoch 155:  69%|██████▉   | 20/29 [00:00<00:00, 28.45it/s, loss=0.134, v_num=]
+Epoch 155:  69%|██████▉   | 20/29 [00:00<00:00, 28.42it/s, loss=0.133, v_num=]
+Epoch 155: 100%|██████████| 29/29 [00:01<00:00, 28.35it/s, loss=0.129, v_num=]Evaluating...
+NMI : 0.5113243504113703, ARI: 0.27689056707393794, ACC: 0.25028, current K: 4
+
+Epoch 155:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.129, v_num=]         
+Epoch 156:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.129, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 156:  69%|██████▉   | 20/29 [00:00<00:00, 23.85it/s, loss=0.129, v_num=]
+Epoch 156:  69%|██████▉   | 20/29 [00:00<00:00, 23.83it/s, loss=0.148, v_num=]
+Epoch 156: 100%|██████████| 29/29 [00:01<00:00, 24.92it/s, loss=0.133, v_num=]
+Epoch 156:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.133, v_num=]         
+Epoch 157:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.133, v_num=]
+Epoch 157:  69%|██████▉   | 20/29 [00:00<00:00, 28.06it/s, loss=0.133, v_num=]
+Epoch 157:  69%|██████▉   | 20/29 [00:00<00:00, 28.03it/s, loss=0.141, v_num=]
+Epoch 157: 100%|██████████| 29/29 [00:01<00:00, 27.89it/s, loss=0.126, v_num=]
+Epoch 157:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.126, v_num=]         
+Epoch 158:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.126, v_num=]
+Epoch 158:  69%|██████▉   | 20/29 [00:00<00:00, 27.00it/s, loss=0.126, v_num=]
+Epoch 158:  69%|██████▉   | 20/29 [00:00<00:00, 26.97it/s, loss=0.142, v_num=]
+Epoch 158: 100%|██████████| 29/29 [00:01<00:00, 24.21it/s, loss=0.142, v_num=]
+Epoch 158:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.142, v_num=]         
+Epoch 159:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.142, v_num=]
+Epoch 159:  69%|██████▉   | 20/29 [00:00<00:00, 21.18it/s, loss=0.142, v_num=]
+Epoch 159:  69%|██████▉   | 20/29 [00:00<00:00, 21.17it/s, loss=0.142, v_num=]
+Epoch 159: 100%|██████████| 29/29 [00:01<00:00, 20.97it/s, loss=0.132, v_num=]
+Epoch 159:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]         
+Epoch 160:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]
+Epoch 160:  69%|██████▉   | 20/29 [00:00<00:00, 20.31it/s, loss=0.132, v_num=]
+Epoch 160:  69%|██████▉   | 20/29 [00:00<00:00, 20.29it/s, loss=0.133, v_num=]
+Epoch 160: 100%|██████████| 29/29 [00:01<00:00, 22.25it/s, loss=0.136, v_num=]Evaluating...
+NMI : 0.5087538719853486, ARI: 0.27727537575035777, ACC: 0.24833, current K: 4
+Epoch 160 | NMI: 0.5088, ARI: 0.2773, ACC: 0.2483, current K: 4
+Confusion Matrix:
+[[  0   0  44 256   0   0   0   0   0   0   0   0]
+ [  0   0  13 287   0   0   0   0   0   0   0   0]
+ [  0   0  38 262   0   0   0   0   0   0   0   0]
+ [  0   0  20 280   0   0   0   0   0   0   0   0]
+ [280   2  18   0   0   0   0   0   0   0   0   0]
+ [288   1  11   0   0   0   0   0   0   0   0   0]
+ [273   0  27   0   0   0   0   0   0   0   0   0]
+ [287   1  12   0   0   0   0   0   0   0   0   0]
+ [ 12 261  27   0   0   0   0   0   0   0   0   0]
+ [ 13 275  12   0   0   0   0   0   0   0   0   0]
+ [ 16 261  23   0   0   0   0   0   0   0   0   0]
+ [ 13 267  20   0   0   0   0   0   0   0   0   0]]
+
+Epoch 160:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.136, v_num=]         
+Epoch 161:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.136, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 161:  69%|██████▉   | 20/29 [00:00<00:00, 28.52it/s, loss=0.136, v_num=]
+Epoch 161:  69%|██████▉   | 20/29 [00:00<00:00, 28.48it/s, loss=0.143, v_num=]
+Epoch 161: 100%|██████████| 29/29 [00:01<00:00, 28.52it/s, loss=0.141, v_num=]
+Epoch 161:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.141, v_num=]         
+Epoch 162:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.141, v_num=]
+Epoch 162:  69%|██████▉   | 20/29 [00:00<00:00, 28.33it/s, loss=0.141, v_num=]
+Epoch 162:  69%|██████▉   | 20/29 [00:00<00:00, 28.30it/s, loss=0.139, v_num=]
+Epoch 162: 100%|██████████| 29/29 [00:01<00:00, 28.45it/s, loss=0.131, v_num=]
+Epoch 162:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]         
+Epoch 163:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]
+Epoch 163:  69%|██████▉   | 20/29 [00:00<00:00, 28.36it/s, loss=0.131, v_num=]
+Epoch 163:  69%|██████▉   | 20/29 [00:00<00:00, 28.34it/s, loss=0.142, v_num=]
+Epoch 163: 100%|██████████| 29/29 [00:01<00:00, 28.34it/s, loss=0.126, v_num=]
+Epoch 163:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.126, v_num=]         
+Epoch 164:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.126, v_num=]
+Epoch 164:  69%|██████▉   | 20/29 [00:00<00:00, 28.53it/s, loss=0.126, v_num=]
+Epoch 164:  69%|██████▉   | 20/29 [00:00<00:00, 28.50it/s, loss=0.143, v_num=]
+Epoch 164: 100%|██████████| 29/29 [00:01<00:00, 28.70it/s, loss=0.131, v_num=]
+Epoch 164:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]         
+Epoch 165:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]
+Epoch 165:  69%|██████▉   | 20/29 [00:00<00:00, 28.23it/s, loss=0.131, v_num=]
+Epoch 165:  69%|██████▉   | 20/29 [00:00<00:00, 28.20it/s, loss=0.139, v_num=]
+Epoch 165: 100%|██████████| 29/29 [00:01<00:00, 27.98it/s, loss=0.137, v_num=]Evaluating...
+NMI : 0.50548026623002, ARI: 0.2763076236793285, ACC: 0.24806, current K: 4
+
+Epoch 165:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.137, v_num=]         
+Epoch 166:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.137, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 166:  69%|██████▉   | 20/29 [00:00<00:00, 28.77it/s, loss=0.137, v_num=]
+Epoch 166:  69%|██████▉   | 20/29 [00:00<00:00, 28.74it/s, loss=0.138, v_num=]
+Epoch 166: 100%|██████████| 29/29 [00:01<00:00, 28.10it/s, loss=0.139, v_num=]
+Epoch 166:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.139, v_num=]         
+Epoch 167:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.139, v_num=]
+Epoch 167:  69%|██████▉   | 20/29 [00:00<00:00, 27.75it/s, loss=0.139, v_num=]
+Epoch 167:  69%|██████▉   | 20/29 [00:00<00:00, 27.72it/s, loss=0.131, v_num=]
+Epoch 167: 100%|██████████| 29/29 [00:01<00:00, 27.68it/s, loss=0.146, v_num=]
+Epoch 167:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.146, v_num=]         
+Epoch 168:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.146, v_num=]
+Epoch 168:  69%|██████▉   | 20/29 [00:00<00:00, 28.48it/s, loss=0.146, v_num=]
+Epoch 168:  69%|██████▉   | 20/29 [00:00<00:00, 28.46it/s, loss=0.135, v_num=]
+Epoch 168: 100%|██████████| 29/29 [00:01<00:00, 28.17it/s, loss=0.141, v_num=]
+Epoch 168:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.141, v_num=]         
+Epoch 169:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.141, v_num=]
+Epoch 169:  69%|██████▉   | 20/29 [00:00<00:00, 28.09it/s, loss=0.141, v_num=]
+Epoch 169:  69%|██████▉   | 20/29 [00:00<00:00, 28.06it/s, loss=0.141, v_num=]
+Epoch 169: 100%|██████████| 29/29 [00:01<00:00, 27.99it/s, loss=0.141, v_num=]
+Epoch 169:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.141, v_num=]         
+Epoch 170:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.141, v_num=]
+Epoch 170:  69%|██████▉   | 20/29 [00:00<00:00, 22.37it/s, loss=0.141, v_num=]
+Epoch 170:  69%|██████▉   | 20/29 [00:00<00:00, 22.35it/s, loss=0.137, v_num=]
+Epoch 170: 100%|██████████| 29/29 [00:01<00:00, 22.26it/s, loss=0.153, v_num=]Evaluating...
+NMI : 0.5038994394020576, ARI: 0.27588099934300775, ACC: 0.2475, current K: 4
+Epoch 170 | NMI: 0.5039, ARI: 0.2759, ACC: 0.2475, current K: 4
+Confusion Matrix:
+[[  0   0  44 256   0   0   0   0   0   0   0   0]
+ [  0   0  14 286   0   0   0   0   0   0   0   0]
+ [  0   0  39 261   0   0   0   0   0   0   0   0]
+ [  0   0  23 277   0   0   0   0   0   0   0   0]
+ [280   2  18   0   0   0   0   0   0   0   0   0]
+ [287   1  12   0   0   0   0   0   0   0   0   0]
+ [268   0  32   0   0   0   0   0   0   0   0   0]
+ [284   1  15   0   0   0   0   0   0   0   0   0]
+ [ 12 260  28   0   0   0   0   0   0   0   0   0]
+ [ 12 274  14   0   0   0   0   0   0   0   0   0]
+ [ 14 253  33   0   0   0   0   0   0   0   0   0]
+ [ 12 264  24   0   0   0   0   0   0   0   0   0]]
+
+Epoch 170:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.153, v_num=]         
+Epoch 171:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.153, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 171:  69%|██████▉   | 20/29 [00:00<00:00, 20.27it/s, loss=0.153, v_num=]
+Epoch 171:  69%|██████▉   | 20/29 [00:00<00:00, 20.25it/s, loss=0.141, v_num=]
+Epoch 171: 100%|██████████| 29/29 [00:01<00:00, 20.02it/s, loss=0.132, v_num=]
+Epoch 171:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]         
+Epoch 172:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]
+Epoch 172:  69%|██████▉   | 20/29 [00:00<00:00, 25.89it/s, loss=0.132, v_num=]
+Epoch 172:  69%|██████▉   | 20/29 [00:00<00:00, 25.87it/s, loss=0.142, v_num=]
+Epoch 172: 100%|██████████| 29/29 [00:01<00:00, 26.11it/s, loss=0.127, v_num=]
+Epoch 172:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.127, v_num=]         
+Epoch 173:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.127, v_num=]
+Epoch 173:  69%|██████▉   | 20/29 [00:00<00:00, 29.19it/s, loss=0.127, v_num=]
+Epoch 173:  69%|██████▉   | 20/29 [00:00<00:00, 29.16it/s, loss=0.141, v_num=]
+Epoch 173: 100%|██████████| 29/29 [00:01<00:00, 28.11it/s, loss=0.131, v_num=]
+Epoch 173:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]         
+Epoch 174:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.131, v_num=]
+Epoch 174:  69%|██████▉   | 20/29 [00:00<00:00, 27.71it/s, loss=0.131, v_num=]
+Epoch 174:  69%|██████▉   | 20/29 [00:00<00:00, 27.68it/s, loss=0.136, v_num=]
+Epoch 174: 100%|██████████| 29/29 [00:01<00:00, 27.00it/s, loss=0.132, v_num=]
+Epoch 174:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]         
+Epoch 175:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.132, v_num=]
+Epoch 175:  69%|██████▉   | 20/29 [00:00<00:00, 27.46it/s, loss=0.132, v_num=]
+Epoch 175:  69%|██████▉   | 20/29 [00:00<00:00, 27.43it/s, loss=0.135, v_num=]
+Epoch 175: 100%|██████████| 29/29 [00:01<00:00, 27.02it/s, loss=0.126, v_num=]/content/DeepDPM-New/src/clustering_models/clusternet_modules/clusternetasmodel.py:672: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  mus_ind_to_split = torch.nonzero(torch.tensor(split_decisions), as_tuple=False)
+Splitting clusters [0 1 3]
+Evaluating...
+NMI : 0.501169862571177, ARI: 0.27504221534539236, ACC: 0.24694, current K: 4
+[Split] K updated → 7 clusters
+  [Epoch 175] losses at split → cluster_loss=0.0826, subcluster_loss=0.1809
+
+Epoch 175:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.126, v_num=]         
+Epoch 176:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.126, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 176:  69%|██████▉   | 20/29 [00:00<00:00, 21.57it/s, loss=0.126, v_num=]
+Epoch 176:  69%|██████▉   | 20/29 [00:00<00:00, 21.56it/s, loss=0.546, v_num=]
+Epoch 176: 100%|██████████| 29/29 [00:01<00:00, 21.81it/s, loss=0.519, v_num=]
+Epoch 176:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.519, v_num=]         
+Epoch 177:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.519, v_num=]
+Epoch 177:  69%|██████▉   | 20/29 [00:00<00:00, 22.39it/s, loss=0.519, v_num=]
+Epoch 177:  69%|██████▉   | 20/29 [00:00<00:00, 22.37it/s, loss=0.431, v_num=]
+Epoch 177: 100%|██████████| 29/29 [00:01<00:00, 22.06it/s, loss=0.407, v_num=]
+Epoch 177:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.407, v_num=]         
+Epoch 178:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.407, v_num=]
+Epoch 178:  69%|██████▉   | 20/29 [00:00<00:00, 22.63it/s, loss=0.407, v_num=]
+Epoch 178:  69%|██████▉   | 20/29 [00:00<00:00, 22.62it/s, loss=0.389, v_num=]
+Epoch 178: 100%|██████████| 29/29 [00:01<00:00, 22.55it/s, loss=0.375, v_num=]
+Epoch 178:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.375, v_num=]         
+Epoch 179:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.375, v_num=]
+Epoch 179:  69%|██████▉   | 20/29 [00:00<00:00, 23.67it/s, loss=0.375, v_num=]
+Epoch 179:  69%|██████▉   | 20/29 [00:00<00:00, 23.66it/s, loss=0.359, v_num=]
+Epoch 179: 100%|██████████| 29/29 [00:01<00:00, 23.70it/s, loss=0.353, v_num=]
+Epoch 179:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.353, v_num=]         
+Epoch 180:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.353, v_num=]
+Epoch 180:  69%|██████▉   | 20/29 [00:00<00:00, 21.48it/s, loss=0.353, v_num=]
+Epoch 180:  69%|██████▉   | 20/29 [00:00<00:00, 21.46it/s, loss=0.335, v_num=]
+Epoch 180: 100%|██████████| 29/29 [00:01<00:00, 19.58it/s, loss=0.32, v_num=] Evaluating...
+NMI : 0.6838026452778897, ARI: 0.5196317394305112, ACC: 0.46, current K: 7
+Epoch 180 | NMI: 0.6838, ARI: 0.5196, ACC: 0.4600, current K: 7
+Confusion Matrix:
+[[ 46   0   0   0   0 245   9   0   0   0   0   0]
+ [ 15   0   0   0   0   1 284   0   0   0   0   0]
+ [ 44   0   0   0   0 252   4   0   0   0   0   0]
+ [ 23   0   0   0   0   0 277   0   0   0   0   0]
+ [ 25 271   2   2   0   0   0   0   0   0   0   0]
+ [ 18   1 280   0   1   0   0   0   0   0   0   0]
+ [ 37 257   6   0   0   0   0   0   0   0   0   0]
+ [ 24   2 273   0   1   0   0   0   0   0   0   0]
+ [ 33  11   1 253   2   0   0   0   0   0   0   0]
+ [ 19   1  10   0 270   0   0   0   0   0   0   0]
+ [ 40  12   1 246   1   0   0   0   0   0   0   0]
+ [ 33   2  10   1 254   0   0   0   0   0   0   0]]
+
+Epoch 180:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.32, v_num=]         
+Epoch 181:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.32, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 181:  69%|██████▉   | 20/29 [00:01<00:00, 16.84it/s, loss=0.32, v_num=]
+Epoch 181:  69%|██████▉   | 20/29 [00:01<00:00, 16.82it/s, loss=0.301, v_num=]
+Epoch 181: 100%|██████████| 29/29 [00:01<00:00, 16.38it/s, loss=0.297, v_num=]
+Epoch 181:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.297, v_num=]         
+Epoch 182:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.297, v_num=]
+Epoch 182:  69%|██████▉   | 20/29 [00:01<00:00, 19.43it/s, loss=0.297, v_num=]
+Epoch 182:  69%|██████▉   | 20/29 [00:01<00:00, 19.41it/s, loss=0.108, v_num=]
+Epoch 182: 100%|██████████| 29/29 [00:01<00:00, 20.30it/s, loss=0.104, v_num=]
+Epoch 182:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.104, v_num=]         
+Epoch 183:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.104, v_num=]
+Epoch 183:  69%|██████▉   | 20/29 [00:00<00:00, 22.59it/s, loss=0.104, v_num=]
+Epoch 183:  69%|██████▉   | 20/29 [00:00<00:00, 22.58it/s, loss=0.116, v_num=]
+Epoch 183: 100%|██████████| 29/29 [00:01<00:00, 22.38it/s, loss=0.117, v_num=]
+Epoch 183:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.117, v_num=]         
+Epoch 184:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.117, v_num=]
+Epoch 184:  69%|██████▉   | 20/29 [00:00<00:00, 23.48it/s, loss=0.117, v_num=]
+Epoch 184:  69%|██████▉   | 20/29 [00:00<00:00, 23.46it/s, loss=0.111, v_num=]
+Epoch 184: 100%|██████████| 29/29 [00:01<00:00, 23.20it/s, loss=0.116, v_num=]
+Epoch 184:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.116, v_num=]         
+Epoch 185:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.116, v_num=]
+Epoch 185:  69%|██████▉   | 20/29 [00:00<00:00, 22.56it/s, loss=0.116, v_num=]
+Epoch 185:  69%|██████▉   | 20/29 [00:00<00:00, 22.54it/s, loss=0.12, v_num=] 
+Epoch 185: 100%|██████████| 29/29 [00:01<00:00, 22.73it/s, loss=0.109, v_num=]Evaluating...
+NMI : 0.7031115701663037, ARI: 0.5371996597274455, ACC: 0.46722, current K: 7
+
+Epoch 185:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.109, v_num=]         
+Epoch 186:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.109, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 186:  69%|██████▉   | 20/29 [00:00<00:00, 22.68it/s, loss=0.109, v_num=]
+Epoch 186:  69%|██████▉   | 20/29 [00:00<00:00, 22.66it/s, loss=0.128, v_num=]
+Epoch 186: 100%|██████████| 29/29 [00:01<00:00, 22.83it/s, loss=0.123, v_num=]
+Epoch 186:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.123, v_num=]         
+Epoch 187:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.123, v_num=]
+Epoch 187:  69%|██████▉   | 20/29 [00:00<00:00, 23.23it/s, loss=0.123, v_num=]
+Epoch 187:  69%|██████▉   | 20/29 [00:00<00:00, 23.21it/s, loss=0.119, v_num=]
+Epoch 187: 100%|██████████| 29/29 [00:01<00:00, 23.05it/s, loss=0.114, v_num=]
+Epoch 187:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.114, v_num=]         
+Epoch 188:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.114, v_num=]
+Epoch 188:  69%|██████▉   | 20/29 [00:00<00:00, 23.64it/s, loss=0.114, v_num=]
+Epoch 188:  69%|██████▉   | 20/29 [00:00<00:00, 23.62it/s, loss=0.124, v_num=]
+Epoch 188: 100%|██████████| 29/29 [00:01<00:00, 23.24it/s, loss=0.124, v_num=]
+Epoch 188:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.124, v_num=]         
+Epoch 189:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.124, v_num=]
+Epoch 189:  69%|██████▉   | 20/29 [00:00<00:00, 22.67it/s, loss=0.124, v_num=]
+Epoch 189:  69%|██████▉   | 20/29 [00:00<00:00, 22.66it/s, loss=0.125, v_num=]
+Epoch 189: 100%|██████████| 29/29 [00:01<00:00, 22.58it/s, loss=0.111, v_num=]
+Epoch 189:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.111, v_num=]         
+Epoch 190:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.111, v_num=]
+Epoch 190:  69%|██████▉   | 20/29 [00:01<00:00, 16.99it/s, loss=0.111, v_num=]
+Epoch 190:  69%|██████▉   | 20/29 [00:01<00:00, 16.98it/s, loss=0.111, v_num=]
+Epoch 190: 100%|██████████| 29/29 [00:01<00:00, 16.60it/s, loss=0.12, v_num=] Evaluating...
+NMI : 0.7139943076393379, ARI: 0.5477821537312451, ACC: 0.47111, current K: 7
+Epoch 190 | NMI: 0.7140, ARI: 0.5478, ACC: 0.4711, current K: 7
+Confusion Matrix:
+[[ 28   0   0   0   0 272   0   0   0   0   0   0]
+ [ 11   0   0   0   0   1 288   0   0   0   0   0]
+ [ 32   0   0   0   0 266   2   0   0   0   0   0]
+ [ 20   0   0   0   0   0 280   0   0   0   0   0]
+ [ 14 283   1   2   0   0   0   0   0   0   0   0]
+ [ 12   1 286   0   1   0   0   0   0   0   0   0]
+ [ 27 263  10   0   0   0   0   0   0   0   0   0]
+ [ 14   0 285   0   1   0   0   0   0   0   0   0]
+ [ 26  10   2 259   3   0   0   0   0   0   0   0]
+ [ 11   0  12   1 276   0   0   0   0   0   0   0]
+ [ 32  13   1 254   0   0   0   0   0   0   0   0]
+ [ 23   1  12   3 261   0   0   0   0   0   0   0]]
+
+Epoch 190:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.12, v_num=]         
+Epoch 191:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.12, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 191:  69%|██████▉   | 20/29 [00:01<00:00, 16.59it/s, loss=0.12, v_num=]
+Epoch 191:  69%|██████▉   | 20/29 [00:01<00:00, 16.59it/s, loss=0.113, v_num=]
+Epoch 191: 100%|██████████| 29/29 [00:01<00:00, 18.00it/s, loss=0.113, v_num=]
+Epoch 191:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.113, v_num=]         
+Epoch 192:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.113, v_num=]
+Epoch 192:  69%|██████▉   | 20/29 [00:00<00:00, 22.29it/s, loss=0.113, v_num=]
+Epoch 192:  69%|██████▉   | 20/29 [00:00<00:00, 22.28it/s, loss=0.118, v_num=]
+Epoch 192: 100%|██████████| 29/29 [00:01<00:00, 22.16it/s, loss=0.118, v_num=]
+Epoch 192:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.118, v_num=]         
+Epoch 193:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.118, v_num=]
+Epoch 193:  69%|██████▉   | 20/29 [00:00<00:00, 23.19it/s, loss=0.118, v_num=]
+Epoch 193:  69%|██████▉   | 20/29 [00:00<00:00, 23.17it/s, loss=0.115, v_num=]
+Epoch 193: 100%|██████████| 29/29 [00:01<00:00, 22.64it/s, loss=0.109, v_num=]
+Epoch 193:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.109, v_num=]         
+Epoch 194:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.109, v_num=]
+Epoch 194:  69%|██████▉   | 20/29 [00:00<00:00, 22.58it/s, loss=0.109, v_num=]
+Epoch 194:  69%|██████▉   | 20/29 [00:00<00:00, 22.57it/s, loss=0.117, v_num=]
+Epoch 194: 100%|██████████| 29/29 [00:01<00:00, 22.69it/s, loss=0.106, v_num=]
+Epoch 194:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]         
+Epoch 195:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]
+Epoch 195:  69%|██████▉   | 20/29 [00:00<00:00, 22.81it/s, loss=0.106, v_num=]
+Epoch 195:  69%|██████▉   | 20/29 [00:00<00:00, 22.79it/s, loss=0.112, v_num=]
+Epoch 195: 100%|██████████| 29/29 [00:01<00:00, 22.79it/s, loss=0.11, v_num=] Evaluating...
+NMI : 0.7188000359363994, ARI: 0.5526165376842359, ACC: 0.47306, current K: 7
+
+Epoch 195:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.11, v_num=]         
+Epoch 196:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.11, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 196:  69%|██████▉   | 20/29 [00:00<00:00, 22.72it/s, loss=0.11, v_num=]
+Epoch 196:  69%|██████▉   | 20/29 [00:00<00:00, 22.70it/s, loss=0.107, v_num=]
+Epoch 196: 100%|██████████| 29/29 [00:01<00:00, 22.53it/s, loss=0.119, v_num=]
+Epoch 196:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.119, v_num=]         
+Epoch 197:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.119, v_num=]
+Epoch 197:  69%|██████▉   | 20/29 [00:00<00:00, 23.10it/s, loss=0.119, v_num=]
+Epoch 197:  69%|██████▉   | 20/29 [00:00<00:00, 23.08it/s, loss=0.108, v_num=]
+Epoch 197: 100%|██████████| 29/29 [00:01<00:00, 22.86it/s, loss=0.105, v_num=]
+Epoch 197:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]         
+Epoch 198:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]
+Epoch 198:  69%|██████▉   | 20/29 [00:00<00:00, 22.98it/s, loss=0.105, v_num=]
+Epoch 198:  69%|██████▉   | 20/29 [00:00<00:00, 22.96it/s, loss=0.109, v_num=]
+Epoch 198: 100%|██████████| 29/29 [00:01<00:00, 22.67it/s, loss=0.0978, v_num=]
+Epoch 198:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0978, v_num=]         
+Epoch 199:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0978, v_num=]
+Epoch 199:  69%|██████▉   | 20/29 [00:01<00:00, 18.30it/s, loss=0.0978, v_num=]
+Epoch 199:  69%|██████▉   | 20/29 [00:01<00:00, 18.29it/s, loss=0.105, v_num=] 
+Epoch 199: 100%|██████████| 29/29 [00:01<00:00, 17.12it/s, loss=0.096, v_num=]
+Epoch 199:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.096, v_num=]         
+Epoch 200:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.096, v_num=]
+Epoch 200:  69%|██████▉   | 20/29 [00:01<00:00, 11.83it/s, loss=0.096, v_num=]
+Epoch 200:  69%|██████▉   | 20/29 [00:01<00:00, 11.83it/s, loss=0.1, v_num=]  
+Epoch 200: 100%|██████████| 29/29 [00:02<00:00, 13.75it/s, loss=0.0956, v_num=]Evaluating...
+NMI : 0.7201987811563577, ARI: 0.5541831326727372, ACC: 0.47361, current K: 7
+Epoch 200 | NMI: 0.7202, ARI: 0.5542, ACC: 0.4736, current K: 7
+Confusion Matrix:
+[[ 18   0   0   0   0 282   0   0   0   0   0   0]
+ [  9   0   0   0   0   1 290   0   0   0   0   0]
+ [ 26   0   0   0   0 272   2   0   0   0   0   0]
+ [ 17   0   0   0   0   0 283   0   0   0   0   0]
+ [ 13 284   1   2   0   0   0   0   0   0   0   0]
+ [ 13   1 285   0   1   0   0   0   0   0   0   0]
+ [ 23 267   9   0   0   0   1   0   0   0   0   0]
+ [ 13   1 285   0   1   0   0   0   0   0   0   0]
+ [ 25  10   2 259   4   0   0   0   0   0   0   0]
+ [ 12   1  11   0 276   0   0   0   0   0   0   0]
+ [ 29  14   1 256   0   0   0   0   0   0   0   0]
+ [ 23   1  11   2 263   0   0   0   0   0   0   0]]
+
+Epoch 200:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0956, v_num=]         
+Epoch 201:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0956, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 201:  69%|██████▉   | 20/29 [00:00<00:00, 22.60it/s, loss=0.0956, v_num=]
+Epoch 201:  69%|██████▉   | 20/29 [00:00<00:00, 22.58it/s, loss=0.0987, v_num=]
+Epoch 201: 100%|██████████| 29/29 [00:01<00:00, 22.68it/s, loss=0.0985, v_num=]
+Epoch 201:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0985, v_num=]         
+Epoch 202:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0985, v_num=]
+Epoch 202:  69%|██████▉   | 20/29 [00:00<00:00, 23.14it/s, loss=0.0985, v_num=]
+Epoch 202:  69%|██████▉   | 20/29 [00:00<00:00, 23.12it/s, loss=0.103, v_num=] 
+Epoch 202: 100%|██████████| 29/29 [00:01<00:00, 23.08it/s, loss=0.104, v_num=]
+Epoch 202:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.104, v_num=]         
+Epoch 203:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.104, v_num=]
+Epoch 203:  69%|██████▉   | 20/29 [00:01<00:00, 19.60it/s, loss=0.104, v_num=]
+Epoch 203:  69%|██████▉   | 20/29 [00:01<00:00, 19.59it/s, loss=0.103, v_num=]
+Epoch 203: 100%|██████████| 29/29 [00:01<00:00, 19.86it/s, loss=0.0978, v_num=]
+Epoch 203:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0978, v_num=]         
+Epoch 204:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0978, v_num=]
+Epoch 204:  69%|██████▉   | 20/29 [00:00<00:00, 23.07it/s, loss=0.0978, v_num=]
+Epoch 204:  69%|██████▉   | 20/29 [00:00<00:00, 23.05it/s, loss=0.101, v_num=] 
+Epoch 204: 100%|██████████| 29/29 [00:01<00:00, 22.73it/s, loss=0.0886, v_num=]
+Epoch 204:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0886, v_num=]         
+Epoch 205:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0886, v_num=]
+Epoch 205:  69%|██████▉   | 20/29 [00:00<00:00, 23.02it/s, loss=0.0886, v_num=]
+Epoch 205:  69%|██████▉   | 20/29 [00:00<00:00, 23.00it/s, loss=0.103, v_num=] 
+Epoch 205: 100%|██████████| 29/29 [00:01<00:00, 22.93it/s, loss=0.0877, v_num=]Evaluating...
+NMI : 0.7200190614058468, ARI: 0.5541413356884946, ACC: 0.47389, current K: 7
+
+Epoch 205:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0877, v_num=]         
+Epoch 206:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0877, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 206:  69%|██████▉   | 20/29 [00:00<00:00, 22.61it/s, loss=0.0877, v_num=]
+Epoch 206:  69%|██████▉   | 20/29 [00:00<00:00, 22.59it/s, loss=0.0972, v_num=]
+Epoch 206: 100%|██████████| 29/29 [00:01<00:00, 22.60it/s, loss=0.095, v_num=] 
+Epoch 206:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.095, v_num=]         
+Epoch 207:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.095, v_num=]
+Epoch 207:  69%|██████▉   | 20/29 [00:00<00:00, 22.65it/s, loss=0.095, v_num=]
+Epoch 207:  69%|██████▉   | 20/29 [00:00<00:00, 22.64it/s, loss=0.0976, v_num=]
+Epoch 207: 100%|██████████| 29/29 [00:01<00:00, 22.44it/s, loss=0.0995, v_num=]
+Epoch 207:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0995, v_num=]         
+Epoch 208:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0995, v_num=]
+Epoch 208:  69%|██████▉   | 20/29 [00:01<00:00, 17.26it/s, loss=0.0995, v_num=]
+Epoch 208:  69%|██████▉   | 20/29 [00:01<00:00, 17.25it/s, loss=0.0972, v_num=]
+Epoch 208: 100%|██████████| 29/29 [00:01<00:00, 16.82it/s, loss=0.09, v_num=]  
+Epoch 208:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.09, v_num=]         
+Epoch 209:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.09, v_num=]
+Epoch 209:  69%|██████▉   | 20/29 [00:01<00:00, 15.90it/s, loss=0.09, v_num=]
+Epoch 209:  69%|██████▉   | 20/29 [00:01<00:00, 15.89it/s, loss=0.0916, v_num=]
+Epoch 209: 100%|██████████| 29/29 [00:01<00:00, 17.36it/s, loss=0.0974, v_num=]
+Epoch 209:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0974, v_num=]         
+Epoch 210:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0974, v_num=]
+Epoch 210:  69%|██████▉   | 20/29 [00:00<00:00, 22.75it/s, loss=0.0974, v_num=]
+Epoch 210:  69%|██████▉   | 20/29 [00:00<00:00, 22.73it/s, loss=0.0988, v_num=]
+Epoch 210: 100%|██████████| 29/29 [00:01<00:00, 22.64it/s, loss=0.0859, v_num=]Evaluating...
+NMI : 0.7205073077136409, ARI: 0.5543314870484386, ACC: 0.47417, current K: 7
+Epoch 210 | NMI: 0.7205, ARI: 0.5543, ACC: 0.4742, current K: 7
+Confusion Matrix:
+[[ 16   0   0   0   0 284   0   0   0   0   0   0]
+ [ 10   0   0   0   0   1 289   0   0   0   0   0]
+ [ 23   0   0   1   0 274   2   0   0   0   0   0]
+ [ 17   0   0   0   0   0 283   0   0   0   0   0]
+ [ 13 284   1   2   0   0   0   0   0   0   0   0]
+ [ 13   1 285   0   1   0   0   0   0   0   0   0]
+ [ 23 268   9   0   0   0   0   0   0   0   0   0]
+ [ 16   1 282   0   1   0   0   0   0   0   0   0]
+ [ 26  10   2 259   3   0   0   0   0   0   0   0]
+ [ 14   0  10   0 276   0   0   0   0   0   0   0]
+ [ 30  14   1 255   0   0   0   0   0   0   0   0]
+ [ 25   1  11   2 261   0   0   0   0   0   0   0]]
+
+Epoch 210:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0859, v_num=]         
+Epoch 211:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0859, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 211:  69%|██████▉   | 20/29 [00:00<00:00, 22.80it/s, loss=0.0859, v_num=]
+Epoch 211:  69%|██████▉   | 20/29 [00:00<00:00, 22.78it/s, loss=0.0956, v_num=]
+Epoch 211: 100%|██████████| 29/29 [00:01<00:00, 23.01it/s, loss=0.093, v_num=] 
+Epoch 211:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.093, v_num=]         
+Epoch 212:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.093, v_num=]
+Epoch 212:  69%|██████▉   | 20/29 [00:00<00:00, 23.15it/s, loss=0.093, v_num=]
+Epoch 212:  69%|██████▉   | 20/29 [00:00<00:00, 23.13it/s, loss=0.0969, v_num=]
+Epoch 212: 100%|██████████| 29/29 [00:01<00:00, 22.94it/s, loss=0.0933, v_num=]
+Epoch 212:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0933, v_num=]         
+Epoch 213:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0933, v_num=]
+Epoch 213:  69%|██████▉   | 20/29 [00:00<00:00, 22.64it/s, loss=0.0933, v_num=]
+Epoch 213:  69%|██████▉   | 20/29 [00:00<00:00, 22.62it/s, loss=0.0928, v_num=]
+Epoch 213: 100%|██████████| 29/29 [00:01<00:00, 22.34it/s, loss=0.0987, v_num=]
+Epoch 213:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0987, v_num=]         
+Epoch 214:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0987, v_num=]
+Epoch 214:  69%|██████▉   | 20/29 [00:00<00:00, 22.63it/s, loss=0.0987, v_num=]
+Epoch 214:  69%|██████▉   | 20/29 [00:00<00:00, 22.61it/s, loss=0.0864, v_num=]
+Epoch 214: 100%|██████████| 29/29 [00:01<00:00, 22.65it/s, loss=0.0998, v_num=]
+Epoch 214:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0998, v_num=]         
+Epoch 215:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0998, v_num=]
+Epoch 215:  69%|██████▉   | 20/29 [00:00<00:00, 22.05it/s, loss=0.0998, v_num=]
+Epoch 215:  69%|██████▉   | 20/29 [00:00<00:00, 22.04it/s, loss=0.0925, v_num=]
+Epoch 215: 100%|██████████| 29/29 [00:01<00:00, 22.19it/s, loss=0.092, v_num=] Evaluating...
+NMI : 0.7215672507215373, ARI: 0.5548921327275963, ACC: 0.47389, current K: 7
+
+Epoch 215:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.092, v_num=]         
+Epoch 216:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.092, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 216:  69%|██████▉   | 20/29 [00:00<00:00, 22.97it/s, loss=0.092, v_num=]
+Epoch 216:  69%|██████▉   | 20/29 [00:00<00:00, 22.96it/s, loss=0.101, v_num=]
+Epoch 216: 100%|██████████| 29/29 [00:01<00:00, 22.62it/s, loss=0.0993, v_num=]
+Epoch 216:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0993, v_num=]         
+Epoch 217:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0993, v_num=]
+Epoch 217:  69%|██████▉   | 20/29 [00:01<00:00, 18.78it/s, loss=0.0993, v_num=]
+Epoch 217:  69%|██████▉   | 20/29 [00:01<00:00, 18.76it/s, loss=0.103, v_num=] 
+Epoch 217: 100%|██████████| 29/29 [00:01<00:00, 18.18it/s, loss=0.102, v_num=]
+Epoch 217:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.102, v_num=]         
+Epoch 218:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.102, v_num=]
+Epoch 218:  69%|██████▉   | 20/29 [00:01<00:00, 16.91it/s, loss=0.102, v_num=]
+Epoch 218:  69%|██████▉   | 20/29 [00:01<00:00, 16.90it/s, loss=0.0924, v_num=]
+Epoch 218: 100%|██████████| 29/29 [00:01<00:00, 16.98it/s, loss=0.0997, v_num=]
+Epoch 218:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0997, v_num=]         
+Epoch 219:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0997, v_num=]
+Epoch 219:  69%|██████▉   | 20/29 [00:00<00:00, 23.06it/s, loss=0.0997, v_num=]
+Epoch 219:  69%|██████▉   | 20/29 [00:00<00:00, 23.04it/s, loss=0.0931, v_num=]
+Epoch 219: 100%|██████████| 29/29 [00:01<00:00, 22.96it/s, loss=0.0978, v_num=]
+Epoch 219:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0978, v_num=]         
+Epoch 220:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0978, v_num=]
+Epoch 220:  69%|██████▉   | 20/29 [00:00<00:00, 22.99it/s, loss=0.0978, v_num=]
+Epoch 220:  69%|██████▉   | 20/29 [00:00<00:00, 22.98it/s, loss=0.105, v_num=] 
+Epoch 220: 100%|██████████| 29/29 [00:01<00:00, 22.99it/s, loss=0.0861, v_num=]Evaluating...
+NMI : 0.7216069166875178, ARI: 0.5544169056024696, ACC: 0.47306, current K: 7
+Epoch 220 | NMI: 0.7216, ARI: 0.5544, ACC: 0.4731, current K: 7
+Confusion Matrix:
+[[ 15   0   0   0   0 285   0   0   0   0   0   0]
+ [ 10   0   0   0   0   1 289   0   0   0   0   0]
+ [ 24   0   0   0   0 274   2   0   0   0   0   0]
+ [ 18   0   0   0   0   0 282   0   0   0   0   0]
+ [ 15 282   1   2   0   0   0   0   0   0   0   0]
+ [ 16   1 282   0   1   0   0   0   0   0   0   0]
+ [ 28 267   5   0   0   0   0   0   0   0   0   0]
+ [ 18   1 280   0   1   0   0   0   0   0   0   0]
+ [ 29  10   0 258   3   0   0   0   0   0   0   0]
+ [ 15   0   9   0 276   0   0   0   0   0   0   0]
+ [ 31  14   1 254   0   0   0   0   0   0   0   0]
+ [ 25   1  10   1 263   0   0   0   0   0   0   0]]
+
+Epoch 220:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0861, v_num=]         
+Epoch 221:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0861, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 221:  69%|██████▉   | 20/29 [00:00<00:00, 22.69it/s, loss=0.0861, v_num=]
+Epoch 221:  69%|██████▉   | 20/29 [00:00<00:00, 22.67it/s, loss=0.0835, v_num=]
+Epoch 221: 100%|██████████| 29/29 [00:01<00:00, 22.73it/s, loss=0.0921, v_num=]
+Epoch 221:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0921, v_num=]         
+Epoch 222:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0921, v_num=]
+Epoch 222:  69%|██████▉   | 20/29 [00:00<00:00, 23.60it/s, loss=0.0921, v_num=]
+Epoch 222:  69%|██████▉   | 20/29 [00:00<00:00, 23.58it/s, loss=0.0959, v_num=]
+Epoch 222: 100%|██████████| 29/29 [00:01<00:00, 23.30it/s, loss=0.0959, v_num=]
+Epoch 222:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0959, v_num=]         
+Epoch 223:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0959, v_num=]
+Epoch 223:  69%|██████▉   | 20/29 [00:01<00:00, 19.29it/s, loss=0.0959, v_num=]
+Epoch 223:  69%|██████▉   | 20/29 [00:01<00:00, 19.27it/s, loss=0.101, v_num=] 
+Epoch 223: 100%|██████████| 29/29 [00:01<00:00, 20.32it/s, loss=0.0979, v_num=]
+Epoch 223:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0979, v_num=]         
+Epoch 224:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0979, v_num=]
+Epoch 224:  69%|██████▉   | 20/29 [00:00<00:00, 22.61it/s, loss=0.0979, v_num=]
+Epoch 224:  69%|██████▉   | 20/29 [00:00<00:00, 22.59it/s, loss=0.0955, v_num=]
+Epoch 224: 100%|██████████| 29/29 [00:01<00:00, 22.70it/s, loss=0.0891, v_num=]
+Epoch 224:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0891, v_num=]         
+Epoch 225:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0891, v_num=]
+Epoch 225:  69%|██████▉   | 20/29 [00:00<00:00, 21.29it/s, loss=0.0891, v_num=]
+Epoch 225:  69%|██████▉   | 20/29 [00:00<00:00, 21.27it/s, loss=0.0871, v_num=]
+Epoch 225: 100%|██████████| 29/29 [00:01<00:00, 21.55it/s, loss=0.0936, v_num=]Evaluating...
+NMI : 0.7205875027416652, ARI: 0.5535463465184125, ACC: 0.47222, current K: 7
+
+Epoch 225:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0936, v_num=]         
+Epoch 226:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0936, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 226:  69%|██████▉   | 20/29 [00:00<00:00, 21.30it/s, loss=0.0936, v_num=]
+Epoch 226:  69%|██████▉   | 20/29 [00:00<00:00, 21.28it/s, loss=0.0983, v_num=]
+Epoch 226: 100%|██████████| 29/29 [00:01<00:00, 19.50it/s, loss=0.0923, v_num=]
+Epoch 226:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0923, v_num=]         
+Epoch 227:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0923, v_num=]
+Epoch 227:  69%|██████▉   | 20/29 [00:01<00:00, 16.88it/s, loss=0.0923, v_num=]
+Epoch 227:  69%|██████▉   | 20/29 [00:01<00:00, 16.87it/s, loss=0.0932, v_num=]
+Epoch 227: 100%|██████████| 29/29 [00:01<00:00, 16.76it/s, loss=0.0908, v_num=]
+Epoch 227:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0908, v_num=]         
+Epoch 228:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0908, v_num=]
+Epoch 228:  69%|██████▉   | 20/29 [00:00<00:00, 22.30it/s, loss=0.0908, v_num=]
+Epoch 228:  69%|██████▉   | 20/29 [00:00<00:00, 22.28it/s, loss=0.0974, v_num=]
+Epoch 228: 100%|██████████| 29/29 [00:01<00:00, 22.23it/s, loss=0.0921, v_num=]
+Epoch 228:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0921, v_num=]         
+Epoch 229:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0921, v_num=]
+Epoch 229:  69%|██████▉   | 20/29 [00:00<00:00, 22.61it/s, loss=0.0921, v_num=]
+Epoch 229:  69%|██████▉   | 20/29 [00:00<00:00, 22.59it/s, loss=0.0867, v_num=]
+Epoch 229: 100%|██████████| 29/29 [00:01<00:00, 22.62it/s, loss=0.0959, v_num=]
+Epoch 229:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0959, v_num=]         
+Epoch 230:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0959, v_num=]
+Epoch 230:  69%|██████▉   | 20/29 [00:00<00:00, 22.73it/s, loss=0.0959, v_num=]
+Epoch 230:  69%|██████▉   | 20/29 [00:00<00:00, 22.71it/s, loss=0.0844, v_num=]
+Epoch 230: 100%|██████████| 29/29 [00:01<00:00, 22.59it/s, loss=0.112, v_num=] Evaluating...
+NMI : 0.7198563418266295, ARI: 0.5529039604249288, ACC: 0.47194, current K: 7
+Epoch 230 | NMI: 0.7199, ARI: 0.5529, ACC: 0.4719, current K: 7
+Confusion Matrix:
+[[ 13   0   0   0   0 287   0   0   0   0   0   0]
+ [ 11   0   0   0   0   1 288   0   0   0   0   0]
+ [ 24   0   0   0   0 274   2   0   0   0   0   0]
+ [ 16   0   0   0   0   0 284   0   0   0   0   0]
+ [ 16 281   1   2   0   0   0   0   0   0   0   0]
+ [ 18   1 280   0   1   0   0   0   0   0   0   0]
+ [ 29 266   5   0   0   0   0   0   0   0   0   0]
+ [ 20   1 278   0   1   0   0   0   0   0   0   0]
+ [ 29  10   0 258   3   0   0   0   0   0   0   0]
+ [ 16   0   9   0 275   0   0   0   0   0   0   0]
+ [ 30  14   1 255   0   0   0   0   0   0   0   0]
+ [ 29   1  10   1 259   0   0   0   0   0   0   0]]
+
+Epoch 230:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.112, v_num=]         
+Epoch 231:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.112, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 231:  69%|██████▉   | 20/29 [00:00<00:00, 23.36it/s, loss=0.112, v_num=]
+Epoch 231:  69%|██████▉   | 20/29 [00:00<00:00, 23.35it/s, loss=0.0928, v_num=]
+Epoch 231: 100%|██████████| 29/29 [00:01<00:00, 23.12it/s, loss=0.089, v_num=] 
+Epoch 231:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.089, v_num=]         
+Epoch 232:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.089, v_num=]
+Epoch 232:  69%|██████▉   | 20/29 [00:00<00:00, 23.26it/s, loss=0.089, v_num=]
+Epoch 232:  69%|██████▉   | 20/29 [00:00<00:00, 23.25it/s, loss=0.0867, v_num=]
+Epoch 232: 100%|██████████| 29/29 [00:01<00:00, 23.24it/s, loss=0.103, v_num=] 
+Epoch 232:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]         
+Epoch 233:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]
+Epoch 233:  69%|██████▉   | 20/29 [00:00<00:00, 23.60it/s, loss=0.103, v_num=]
+Epoch 233:  69%|██████▉   | 20/29 [00:00<00:00, 23.58it/s, loss=0.0933, v_num=]
+Epoch 233: 100%|██████████| 29/29 [00:01<00:00, 23.70it/s, loss=0.1, v_num=]   
+Epoch 233:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.1, v_num=]         
+Epoch 234:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.1, v_num=]
+Epoch 234:  69%|██████▉   | 20/29 [00:00<00:00, 23.75it/s, loss=0.1, v_num=]
+Epoch 234:  69%|██████▉   | 20/29 [00:00<00:00, 23.73it/s, loss=0.092, v_num=]
+Epoch 234: 100%|██████████| 29/29 [00:01<00:00, 23.68it/s, loss=0.0974, v_num=]
+Epoch 234:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0974, v_num=]         
+Epoch 235:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0974, v_num=]
+Epoch 235:  69%|██████▉   | 20/29 [00:00<00:00, 23.42it/s, loss=0.0974, v_num=]
+Epoch 235:  69%|██████▉   | 20/29 [00:00<00:00, 23.41it/s, loss=0.0918, v_num=]
+Epoch 235: 100%|██████████| 29/29 [00:01<00:00, 21.73it/s, loss=0.101, v_num=] /content/DeepDPM-New/src/clustering_models/clusternet_modules/clusternetasmodel.py:672: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  mus_ind_to_split = torch.nonzero(torch.tensor(split_decisions), as_tuple=False)
+Splitting clusters [3 4 5 6]
+Evaluating...
+NMI : 0.717623599113006, ARI: 0.5508357179514488, ACC: 0.47083, current K: 7
+[Split] K updated → 11 clusters
+  [Epoch 235] losses at split → cluster_loss=0.0778, subcluster_loss=0.1117
+
+Epoch 235:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.101, v_num=]         
+Epoch 236:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.101, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 236:  69%|██████▉   | 20/29 [00:01<00:00, 14.05it/s, loss=0.101, v_num=]
+Epoch 236:  69%|██████▉   | 20/29 [00:01<00:00, 14.04it/s, loss=0.342, v_num=]
+Epoch 236: 100%|██████████| 29/29 [00:02<00:00, 13.76it/s, loss=0.319, v_num=]
+Epoch 236:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.319, v_num=]         
+Epoch 237:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.319, v_num=]
+Epoch 237:  69%|██████▉   | 20/29 [00:01<00:00, 16.37it/s, loss=0.319, v_num=]
+Epoch 237:  69%|██████▉   | 20/29 [00:01<00:00, 16.36it/s, loss=0.337, v_num=]
+Epoch 237: 100%|██████████| 29/29 [00:01<00:00, 16.96it/s, loss=0.311, v_num=]
+Epoch 237:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.311, v_num=]         
+Epoch 238:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.311, v_num=]
+Epoch 238:  69%|██████▉   | 20/29 [00:01<00:00, 18.06it/s, loss=0.311, v_num=]
+Epoch 238:  69%|██████▉   | 20/29 [00:01<00:00, 18.04it/s, loss=0.302, v_num=]
+Epoch 238: 100%|██████████| 29/29 [00:01<00:00, 18.14it/s, loss=0.315, v_num=]
+Epoch 238:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.315, v_num=]         
+Epoch 239:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.315, v_num=]
+Epoch 239:  69%|██████▉   | 20/29 [00:01<00:00, 18.57it/s, loss=0.315, v_num=]
+Epoch 239:  69%|██████▉   | 20/29 [00:01<00:00, 18.56it/s, loss=0.294, v_num=]
+Epoch 239: 100%|██████████| 29/29 [00:01<00:00, 18.62it/s, loss=0.293, v_num=]
+Epoch 239:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.293, v_num=]         
+Epoch 240:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.293, v_num=]
+Epoch 240:  69%|██████▉   | 20/29 [00:01<00:00, 18.64it/s, loss=0.293, v_num=]
+Epoch 240:  69%|██████▉   | 20/29 [00:01<00:00, 18.63it/s, loss=0.295, v_num=]
+Epoch 240: 100%|██████████| 29/29 [00:01<00:00, 18.62it/s, loss=0.301, v_num=]Evaluating...
+NMI : 0.7327167469470559, ARI: 0.5778694645163857, ACC: 0.65611, current K: 11
+Epoch 240 | NMI: 0.7327, ARI: 0.5779, ACC: 0.6561, current K: 11
+Confusion Matrix:
+[[ 17   0   0   0   0   0   0   1 282   0   0   0]
+ [ 16   0   0   0   0   0   0   0   1 262  21   0]
+ [ 32   0   0   0   0   0   0 168  98   2   0   0]
+ [ 21   0   0   0   0   0   0   0   0  69 210   0]
+ [ 16 281   1   2   0   0   0   0   0   0   0   0]
+ [ 22   1 276   0   0   0   1   0   0   0   0   0]
+ [ 34 263   3   0   0   0   0   0   0   0   0   0]
+ [ 21   0 278   0   0   1   0   0   0   0   0   0]
+ [ 32  10   0 256   0   1   1   0   0   0   0   0]
+ [ 21   0   8   0   0   0 271   0   0   0   0   0]
+ [ 34  13   1  21 231   0   0   0   0   0   0   0]
+ [ 40   1  10   1   0  89 159   0   0   0   0   0]]
+
+Epoch 240:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.301, v_num=]         
+Epoch 241:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.301, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 241:  69%|██████▉   | 20/29 [00:01<00:00, 18.64it/s, loss=0.301, v_num=]
+Epoch 241:  69%|██████▉   | 20/29 [00:01<00:00, 18.62it/s, loss=0.278, v_num=]
+Epoch 241: 100%|██████████| 29/29 [00:01<00:00, 18.54it/s, loss=0.28, v_num=] 
+Epoch 241:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.28, v_num=]         
+Epoch 242:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.28, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 242:  69%|██████▉   | 20/29 [00:01<00:00, 18.35it/s, loss=0.28, v_num=]
+Epoch 242:  69%|██████▉   | 20/29 [00:01<00:00, 18.34it/s, loss=0.0964, v_num=]
+Epoch 242: 100%|██████████| 29/29 [00:01<00:00, 18.30it/s, loss=0.0951, v_num=]
+Epoch 242:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0951, v_num=]         
+Epoch 243:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0951, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 243:  69%|██████▉   | 20/29 [00:01<00:00, 16.77it/s, loss=0.0951, v_num=]
+Epoch 243:  69%|██████▉   | 20/29 [00:01<00:00, 16.76it/s, loss=0.0903, v_num=]
+Epoch 243: 100%|██████████| 29/29 [00:01<00:00, 15.81it/s, loss=0.0963, v_num=]
+Epoch 243:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0963, v_num=]         
+Epoch 244:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0963, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 244:  69%|██████▉   | 20/29 [00:01<00:00, 13.57it/s, loss=0.0963, v_num=]
+Epoch 244:  69%|██████▉   | 20/29 [00:01<00:00, 13.57it/s, loss=0.104, v_num=] 
+Epoch 244: 100%|██████████| 29/29 [00:02<00:00, 14.21it/s, loss=0.1, v_num=]  
+Epoch 244:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.1, v_num=]         
+Epoch 245:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.1, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 245:  69%|██████▉   | 20/29 [00:01<00:00, 18.69it/s, loss=0.1, v_num=]
+Epoch 245:  69%|██████▉   | 20/29 [00:01<00:00, 18.68it/s, loss=0.089, v_num=]
+Epoch 245: 100%|██████████| 29/29 [00:01<00:00, 18.65it/s, loss=0.0924, v_num=]Evaluating...
+NMI : 0.7484841982756826, ARI: 0.605026672504565, ACC: 0.68667, current K: 11
+
+Epoch 245:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0924, v_num=]         
+Epoch 246:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0924, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 246:  69%|██████▉   | 20/29 [00:01<00:00, 18.42it/s, loss=0.0924, v_num=]
+Epoch 246:  69%|██████▉   | 20/29 [00:01<00:00, 18.41it/s, loss=0.0895, v_num=]
+Epoch 246: 100%|██████████| 29/29 [00:01<00:00, 18.42it/s, loss=0.098, v_num=] 
+Epoch 246:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.098, v_num=]         
+Epoch 247:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.098, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 247:  69%|██████▉   | 20/29 [00:01<00:00, 18.40it/s, loss=0.098, v_num=]
+Epoch 247:  69%|██████▉   | 20/29 [00:01<00:00, 18.39it/s, loss=0.0937, v_num=]
+Epoch 247: 100%|██████████| 29/29 [00:01<00:00, 18.53it/s, loss=0.106, v_num=] 
+Epoch 247:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]         
+Epoch 248:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 248:  69%|██████▉   | 20/29 [00:01<00:00, 17.68it/s, loss=0.106, v_num=]
+Epoch 248:  69%|██████▉   | 20/29 [00:01<00:00, 17.66it/s, loss=0.0998, v_num=]
+Epoch 248: 100%|██████████| 29/29 [00:01<00:00, 17.84it/s, loss=0.0962, v_num=]
+Epoch 248:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0962, v_num=]         
+Epoch 249:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0962, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 249:  69%|██████▉   | 20/29 [00:01<00:00, 18.83it/s, loss=0.0962, v_num=]
+Epoch 249:  69%|██████▉   | 20/29 [00:01<00:00, 18.82it/s, loss=0.0925, v_num=]
+Epoch 249: 100%|██████████| 29/29 [00:01<00:00, 18.52it/s, loss=0.105, v_num=] 
+Epoch 249:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]         
+Epoch 250:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 250:  69%|██████▉   | 20/29 [00:01<00:00, 18.25it/s, loss=0.105, v_num=]
+Epoch 250:  69%|██████▉   | 20/29 [00:01<00:00, 18.23it/s, loss=0.103, v_num=]
+Epoch 250: 100%|██████████| 29/29 [00:01<00:00, 17.09it/s, loss=0.0911, v_num=]Evaluating...
+NMI : 0.7146343753752606, ARI: 0.5417248492728791, ACC: 0.60278, current K: 11
+Epoch 250 | NMI: 0.7146, ARI: 0.5417, ACC: 0.6028, current K: 11
+Confusion Matrix:
+[[ 12   0   0   0   0   0   0 192  96   0   0   0]
+ [ 15   0   0   0   0   0   0   0   1 278   6   0]
+ [ 23   0   0   0   0   0   0 272   3   2   0   0]
+ [ 20   0   0   0   0   0   0   0   0 193  87   0]
+ [ 15 282   1   0   2   0   0   0   0   0   0   0]
+ [ 23   1 275   0   0   0   1   0   0   0   0   0]
+ [ 35 264   1   0   0   0   0   0   0   0   0   0]
+ [ 23   0 276   0   0   1   0   0   0   0   0   0]
+ [ 32  10   0 192  64   0   2   0   0   0   0   0]
+ [ 20   0   8   0   0   0 272   0   0   0   0   0]
+ [ 35  13   1   7 244   0   0   0   0   0   0   0]
+ [ 34   1  10   1   0 136 118   0   0   0   0   0]]
+
+Epoch 250:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0911, v_num=]         
+Epoch 251:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0911, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 251:  69%|██████▉   | 20/29 [00:01<00:00, 14.52it/s, loss=0.0911, v_num=]
+Epoch 251:  69%|██████▉   | 20/29 [00:01<00:00, 14.51it/s, loss=0.0938, v_num=]
+Epoch 251: 100%|██████████| 29/29 [00:02<00:00, 13.87it/s, loss=0.0941, v_num=]
+Epoch 251:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0941, v_num=]         
+Epoch 252:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0941, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 252:  69%|██████▉   | 20/29 [00:01<00:00, 16.52it/s, loss=0.0941, v_num=]
+Epoch 252:  69%|██████▉   | 20/29 [00:01<00:00, 16.51it/s, loss=0.0927, v_num=]
+Epoch 252: 100%|██████████| 29/29 [00:01<00:00, 16.99it/s, loss=0.0934, v_num=]
+Epoch 252:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0934, v_num=]         
+Epoch 253:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0934, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 253:  69%|██████▉   | 20/29 [00:01<00:00, 18.24it/s, loss=0.0934, v_num=]
+Epoch 253:  69%|██████▉   | 20/29 [00:01<00:00, 18.23it/s, loss=0.0935, v_num=]
+Epoch 253: 100%|██████████| 29/29 [00:01<00:00, 18.02it/s, loss=0.0908, v_num=]
+Epoch 253:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0908, v_num=]         
+Epoch 254:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0908, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 254:  69%|██████▉   | 20/29 [00:01<00:00, 18.51it/s, loss=0.0908, v_num=]
+Epoch 254:  69%|██████▉   | 20/29 [00:01<00:00, 18.50it/s, loss=0.0915, v_num=]
+Epoch 254: 100%|██████████| 29/29 [00:01<00:00, 18.56it/s, loss=0.0938, v_num=]
+Epoch 254:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0938, v_num=]         
+Epoch 255:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0938, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 255:  69%|██████▉   | 20/29 [00:01<00:00, 18.47it/s, loss=0.0938, v_num=]
+Epoch 255:  69%|██████▉   | 20/29 [00:01<00:00, 18.46it/s, loss=0.0901, v_num=]
+Epoch 255: 100%|██████████| 29/29 [00:01<00:00, 18.19it/s, loss=0.0938, v_num=]Evaluating...
+NMI : 0.7045984685718467, ARI: 0.5245466141940645, ACC: 0.54889, current K: 11
+
+Epoch 255:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0938, v_num=]         
+Epoch 256:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0938, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 256:  69%|██████▉   | 20/29 [00:01<00:00, 16.16it/s, loss=0.0938, v_num=]
+Epoch 256:  69%|██████▉   | 20/29 [00:01<00:00, 16.15it/s, loss=0.0896, v_num=]
+Epoch 256: 100%|██████████| 29/29 [00:01<00:00, 16.62it/s, loss=0.103, v_num=] 
+Epoch 256:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]         
+Epoch 257:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 257:  69%|██████▉   | 20/29 [00:01<00:00, 16.68it/s, loss=0.103, v_num=]
+Epoch 257:  69%|██████▉   | 20/29 [00:01<00:00, 16.67it/s, loss=0.0934, v_num=]
+Epoch 257: 100%|██████████| 29/29 [00:01<00:00, 16.60it/s, loss=0.101, v_num=] 
+Epoch 257:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.101, v_num=]         
+Epoch 258:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.101, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 258:  69%|██████▉   | 20/29 [00:01<00:00, 14.41it/s, loss=0.101, v_num=]
+Epoch 258:  69%|██████▉   | 20/29 [00:01<00:00, 14.40it/s, loss=0.0951, v_num=]
+Epoch 258: 100%|██████████| 29/29 [00:02<00:00, 14.00it/s, loss=0.0901, v_num=]
+Epoch 258:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0901, v_num=]         
+Epoch 259:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0901, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 259:  69%|██████▉   | 20/29 [00:01<00:00, 12.83it/s, loss=0.0901, v_num=]
+Epoch 259:  69%|██████▉   | 20/29 [00:01<00:00, 12.83it/s, loss=0.0899, v_num=]
+Epoch 259: 100%|██████████| 29/29 [00:02<00:00, 14.00it/s, loss=0.0945, v_num=]
+Epoch 259:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0945, v_num=]         
+Epoch 260:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0945, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 260:  69%|██████▉   | 20/29 [00:01<00:00, 17.75it/s, loss=0.0945, v_num=]
+Epoch 260:  69%|██████▉   | 20/29 [00:01<00:00, 17.74it/s, loss=0.0932, v_num=]
+Epoch 260: 100%|██████████| 29/29 [00:01<00:00, 17.61it/s, loss=0.0885, v_num=]Evaluating...
+NMI : 0.7028682820437533, ARI: 0.5246433397779132, ACC: 0.53278, current K: 11
+Epoch 260 | NMI: 0.7029, ARI: 0.5246, ACC: 0.5328, current K: 11
+Confusion Matrix:
+[[  6   0   0   0   0   0   0 229  65   0   0   0]
+ [ 15   0   0   0   0   0   0   0   1 283   1   0]
+ [ 20   0   0   0   1   0   0 276   1   2   0   0]
+ [ 18   0   0   0   0   0   0   0   0 232  50   0]
+ [ 19 278   1   0   2   0   0   0   0   0   0   0]
+ [ 24   1 274   0   0   0   1   0   0   0   0   0]
+ [ 37 263   0   0   0   0   0   0   0   0   0   0]
+ [ 23   0 276   0   0   1   0   0   0   0   0   0]
+ [ 31  10   0  75 182   0   2   0   0   0   0   0]
+ [ 20   0   8   0   0   0 272   0   0   0   0   0]
+ [ 32  13   1  10 244   0   0   0   0   0   0   0]
+ [ 33   1  10   1   1  62 192   0   0   0   0   0]]
+
+Epoch 260:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0885, v_num=]         
+Epoch 261:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0885, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 261:  69%|██████▉   | 20/29 [00:01<00:00, 17.75it/s, loss=0.0885, v_num=]
+Epoch 261:  69%|██████▉   | 20/29 [00:01<00:00, 17.74it/s, loss=0.0972, v_num=]
+Epoch 261: 100%|██████████| 29/29 [00:01<00:00, 17.61it/s, loss=0.0942, v_num=]
+Epoch 261:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0942, v_num=]         
+Epoch 262:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0942, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 262:  69%|██████▉   | 20/29 [00:01<00:00, 16.75it/s, loss=0.0942, v_num=]
+Epoch 262:  69%|██████▉   | 20/29 [00:01<00:00, 16.75it/s, loss=0.0917, v_num=]
+Epoch 262: 100%|██████████| 29/29 [00:01<00:00, 17.01it/s, loss=0.0983, v_num=]
+Epoch 262:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0983, v_num=]         
+Epoch 263:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0983, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 263:  69%|██████▉   | 20/29 [00:01<00:00, 18.56it/s, loss=0.0983, v_num=]
+Epoch 263:  69%|██████▉   | 20/29 [00:01<00:00, 18.55it/s, loss=0.0965, v_num=]
+Epoch 263: 100%|██████████| 29/29 [00:01<00:00, 18.71it/s, loss=0.092, v_num=] 
+Epoch 263:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.092, v_num=]         
+Epoch 264:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.092, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 264:  69%|██████▉   | 20/29 [00:01<00:00, 18.66it/s, loss=0.092, v_num=]
+Epoch 264:  69%|██████▉   | 20/29 [00:01<00:00, 18.64it/s, loss=0.101, v_num=]
+Epoch 264: 100%|██████████| 29/29 [00:01<00:00, 18.77it/s, loss=0.0927, v_num=]
+Epoch 264:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0927, v_num=]         
+Epoch 265:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0927, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 265:  69%|██████▉   | 20/29 [00:01<00:00, 15.83it/s, loss=0.0927, v_num=]
+Epoch 265:  69%|██████▉   | 20/29 [00:01<00:00, 15.81it/s, loss=0.0919, v_num=]
+Epoch 265: 100%|██████████| 29/29 [00:01<00:00, 14.54it/s, loss=0.106, v_num=] /content/DeepDPM-New/src/clustering_models/clusternet_modules/models/Classifiers.py:351: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  mus_ind_not_merged = torch.nonzero(torch.logical_not(torch.tensor(merge_decisions)), as_tuple=False)
+/content/DeepDPM-New/src/clustering_models/clusternet_modules/models/Classifiers.py:359: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  fc1_weights_not_merged = class_fc1.weight.data[torch.logical_not(torch.tensor(merge_decisions)).repeat_interleave(self.hidden_dim), :]
+Merging clusters [[3, 4], [5, 6], [7, 8], [9, 10]]
+Evaluating...
+NMI : 0.70332161027773, ARI: 0.5270740818665866, ACC: 0.52694, current K: 11
+[Merge] K updated → 7 clusters
+  [Epoch 265] losses at merge → cluster_loss=0.0907, subcluster_loss=0.1072
+
+Epoch 265:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]         
+Epoch 266:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.106, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 266:  69%|██████▉   | 20/29 [00:01<00:00, 13.75it/s, loss=0.106, v_num=]
+Epoch 266:  69%|██████▉   | 20/29 [00:01<00:00, 13.74it/s, loss=0.121, v_num=]
+Epoch 266: 100%|██████████| 29/29 [00:01<00:00, 14.87it/s, loss=0.12, v_num=] 
+Epoch 266:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.12, v_num=]         
+Epoch 267:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.12, v_num=]
+Epoch 267:  69%|██████▉   | 20/29 [00:00<00:00, 21.34it/s, loss=0.12, v_num=]
+Epoch 267:  69%|██████▉   | 20/29 [00:00<00:00, 21.32it/s, loss=0.115, v_num=]
+Epoch 267: 100%|██████████| 29/29 [00:01<00:00, 21.71it/s, loss=0.111, v_num=]
+Epoch 267:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.111, v_num=]         
+Epoch 268:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.111, v_num=]
+Epoch 268:  69%|██████▉   | 20/29 [00:00<00:00, 22.31it/s, loss=0.111, v_num=]
+Epoch 268:  69%|██████▉   | 20/29 [00:00<00:00, 22.30it/s, loss=0.114, v_num=]
+Epoch 268: 100%|██████████| 29/29 [00:01<00:00, 22.50it/s, loss=0.125, v_num=]
+Epoch 268:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.125, v_num=]         
+Epoch 269:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.125, v_num=]
+Epoch 269:  69%|██████▉   | 20/29 [00:00<00:00, 22.68it/s, loss=0.125, v_num=]
+Epoch 269:  69%|██████▉   | 20/29 [00:00<00:00, 22.66it/s, loss=0.115, v_num=]
+Epoch 269: 100%|██████████| 29/29 [00:01<00:00, 22.24it/s, loss=0.11, v_num=] 
+Epoch 269:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.11, v_num=]         
+Epoch 270:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.11, v_num=]
+Epoch 270:  69%|██████▉   | 20/29 [00:00<00:00, 23.60it/s, loss=0.11, v_num=]
+Epoch 270:  69%|██████▉   | 20/29 [00:00<00:00, 23.58it/s, loss=0.116, v_num=]
+Epoch 270: 100%|██████████| 29/29 [00:01<00:00, 23.51it/s, loss=0.111, v_num=]Evaluating...
+NMI : 0.703633802357518, ARI: 0.5342776230557189, ACC: 0.46417, current K: 7
+Epoch 270 | NMI: 0.7036, ARI: 0.5343, ACC: 0.4642, current K: 7
+Confusion Matrix:
+[[ 21   0   0   0   0 278   1   0   0   0   0   0]
+ [ 16   0   0   0   0   1 283   0   0   0   0   0]
+ [ 26   0   0   0   0 273   1   0   0   0   0   0]
+ [ 21   0   0   0   0   0 279   0   0   0   0   0]
+ [ 18 279   1   2   0   0   0   0   0   0   0   0]
+ [ 26   1 272   0   1   0   0   0   0   0   0   0]
+ [ 37 263   0   0   0   0   0   0   0   0   0   0]
+ [ 24   0 275   0   1   0   0   0   0   0   0   0]
+ [ 44  10   0 244   2   0   0   0   0   0   0   0]
+ [ 28   0   6   0 266   0   0   0   0   0   0   0]
+ [ 41  13   1 245   0   0   0   0   0   0   0   0]
+ [ 45   1  10   0 244   0   0   0   0   0   0   0]]
+
+Epoch 270:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.111, v_num=]         
+Epoch 271:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.111, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 271:  69%|██████▉   | 20/29 [00:00<00:00, 22.54it/s, loss=0.111, v_num=]
+Epoch 271:  69%|██████▉   | 20/29 [00:00<00:00, 22.52it/s, loss=0.115, v_num=]
+Epoch 271: 100%|██████████| 29/29 [00:01<00:00, 22.46it/s, loss=0.116, v_num=]
+Epoch 271:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.116, v_num=]         
+Epoch 272:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.116, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 272:  69%|██████▉   | 20/29 [00:00<00:00, 21.46it/s, loss=0.116, v_num=]
+Epoch 272:  69%|██████▉   | 20/29 [00:00<00:00, 21.45it/s, loss=0.111, v_num=]
+Epoch 272: 100%|██████████| 29/29 [00:01<00:00, 21.72it/s, loss=0.0917, v_num=]
+Epoch 272:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0917, v_num=]         
+Epoch 273:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0917, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 273:  69%|██████▉   | 20/29 [00:00<00:00, 21.78it/s, loss=0.0917, v_num=]
+Epoch 273:  69%|██████▉   | 20/29 [00:00<00:00, 21.77it/s, loss=0.106, v_num=] 
+Epoch 273: 100%|██████████| 29/29 [00:01<00:00, 21.70it/s, loss=0.112, v_num=]
+Epoch 273:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.112, v_num=]         
+Epoch 274:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.112, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 274:  69%|██████▉   | 20/29 [00:01<00:00, 18.54it/s, loss=0.112, v_num=]
+Epoch 274:  69%|██████▉   | 20/29 [00:01<00:00, 18.53it/s, loss=0.102, v_num=]
+Epoch 274: 100%|██████████| 29/29 [00:01<00:00, 17.90it/s, loss=0.105, v_num=]
+Epoch 274:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]         
+Epoch 275:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 275:  69%|██████▉   | 20/29 [00:01<00:00, 15.94it/s, loss=0.105, v_num=]
+Epoch 275:  69%|██████▉   | 20/29 [00:01<00:00, 15.92it/s, loss=0.112, v_num=]
+Epoch 275: 100%|██████████| 29/29 [00:01<00:00, 15.64it/s, loss=0.103, v_num=]Evaluating...
+NMI : 0.7098204071880474, ARI: 0.5421450603379946, ACC: 0.46694, current K: 7
+
+Epoch 275:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]         
+Epoch 276:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 276:  69%|██████▉   | 20/29 [00:00<00:00, 21.99it/s, loss=0.103, v_num=]
+Epoch 276:  69%|██████▉   | 20/29 [00:00<00:00, 21.97it/s, loss=0.107, v_num=]
+Epoch 276: 100%|██████████| 29/29 [00:01<00:00, 22.19it/s, loss=0.0983, v_num=]
+Epoch 276:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0983, v_num=]         
+Epoch 277:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0983, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 277:  69%|██████▉   | 20/29 [00:00<00:00, 21.28it/s, loss=0.0983, v_num=]
+Epoch 277:  69%|██████▉   | 20/29 [00:00<00:00, 21.26it/s, loss=0.1, v_num=]   
+Epoch 277: 100%|██████████| 29/29 [00:01<00:00, 21.37it/s, loss=0.104, v_num=]
+Epoch 277:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.104, v_num=]         
+Epoch 278:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.104, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 278:  69%|██████▉   | 20/29 [00:00<00:00, 22.07it/s, loss=0.104, v_num=]
+Epoch 278:  69%|██████▉   | 20/29 [00:00<00:00, 22.05it/s, loss=0.109, v_num=]
+Epoch 278: 100%|██████████| 29/29 [00:01<00:00, 21.99it/s, loss=0.113, v_num=]
+Epoch 278:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.113, v_num=]         
+Epoch 279:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.113, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 279:  69%|██████▉   | 20/29 [00:00<00:00, 22.66it/s, loss=0.113, v_num=]
+Epoch 279:  69%|██████▉   | 20/29 [00:00<00:00, 22.64it/s, loss=0.102, v_num=]
+Epoch 279: 100%|██████████| 29/29 [00:01<00:00, 22.63it/s, loss=0.11, v_num=] 
+Epoch 279:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.11, v_num=]         
+Epoch 280:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.11, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 280:  69%|██████▉   | 20/29 [00:00<00:00, 22.18it/s, loss=0.11, v_num=]
+Epoch 280:  69%|██████▉   | 20/29 [00:00<00:00, 22.16it/s, loss=0.104, v_num=]
+Epoch 280: 100%|██████████| 29/29 [00:01<00:00, 22.31it/s, loss=0.104, v_num=]Evaluating...
+NMI : 0.7093260374775078, ARI: 0.5420861947346601, ACC: 0.46639, current K: 7
+Epoch 280 | NMI: 0.7093, ARI: 0.5421, ACC: 0.4664, current K: 7
+Confusion Matrix:
+[[ 15   0   0   0   0 284   1   0   0   0   0   0]
+ [ 15   0   0   0   0   1 284   0   0   0   0   0]
+ [ 24   0   0   1   0 274   1   0   0   0   0   0]
+ [ 20   0   0   0   0   0 280   0   0   0   0   0]
+ [ 21 276   1   2   0   0   0   0   0   0   0   0]
+ [ 28   1 270   0   1   0   0   0   0   0   0   0]
+ [ 38 261   1   0   0   0   0   0   0   0   0   0]
+ [ 25   0 274   0   1   0   0   0   0   0   0   0]
+ [ 35  10   0 253   2   0   0   0   0   0   0   0]
+ [ 25   0   5   0 270   0   0   0   0   0   0   0]
+ [ 33  13   1 253   0   0   0   0   0   0   0   0]
+ [ 35   1   9   1 254   0   0   0   0   0   0   0]]
+
+Epoch 280:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.104, v_num=]         
+Epoch 281:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.104, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 281:  69%|██████▉   | 20/29 [00:00<00:00, 21.85it/s, loss=0.104, v_num=]
+Epoch 281:  69%|██████▉   | 20/29 [00:00<00:00, 21.83it/s, loss=0.106, v_num=]
+Epoch 281: 100%|██████████| 29/29 [00:01<00:00, 21.73it/s, loss=0.0996, v_num=]
+Epoch 281:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0996, v_num=]         
+Epoch 282:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0996, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 282:  69%|██████▉   | 20/29 [00:00<00:00, 21.08it/s, loss=0.0996, v_num=]
+Epoch 282:  69%|██████▉   | 20/29 [00:00<00:00, 21.06it/s, loss=0.112, v_num=] 
+Epoch 282: 100%|██████████| 29/29 [00:01<00:00, 20.56it/s, loss=0.105, v_num=]
+Epoch 282:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]         
+Epoch 283:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 283:  69%|██████▉   | 20/29 [00:01<00:00, 17.75it/s, loss=0.105, v_num=]
+Epoch 283:  69%|██████▉   | 20/29 [00:01<00:00, 17.74it/s, loss=0.101, v_num=]
+Epoch 283: 100%|██████████| 29/29 [00:01<00:00, 17.01it/s, loss=0.1, v_num=]  
+Epoch 283:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.1, v_num=]         
+Epoch 284:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.1, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 284:  69%|██████▉   | 20/29 [00:01<00:00, 15.83it/s, loss=0.1, v_num=]
+Epoch 284:  69%|██████▉   | 20/29 [00:01<00:00, 15.82it/s, loss=0.102, v_num=]
+Epoch 284: 100%|██████████| 29/29 [00:01<00:00, 16.55it/s, loss=0.0975, v_num=]
+Epoch 284:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0975, v_num=]         
+Epoch 285:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0975, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 285:  69%|██████▉   | 20/29 [00:00<00:00, 21.32it/s, loss=0.0975, v_num=]
+Epoch 285:  69%|██████▉   | 20/29 [00:00<00:00, 21.31it/s, loss=0.102, v_num=] 
+Epoch 285: 100%|██████████| 29/29 [00:01<00:00, 21.48it/s, loss=0.105, v_num=]Evaluating...
+NMI : 0.7110621240843336, ARI: 0.5423355648587171, ACC: 0.46667, current K: 7
+
+Epoch 285:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]         
+Epoch 286:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 286:  69%|██████▉   | 20/29 [00:00<00:00, 22.70it/s, loss=0.105, v_num=]
+Epoch 286:  69%|██████▉   | 20/29 [00:00<00:00, 22.68it/s, loss=0.102, v_num=]
+Epoch 286: 100%|██████████| 29/29 [00:01<00:00, 22.37it/s, loss=0.104, v_num=]
+Epoch 286:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.104, v_num=]         
+Epoch 287:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.104, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 287:  69%|██████▉   | 20/29 [00:00<00:00, 21.82it/s, loss=0.104, v_num=]
+Epoch 287:  69%|██████▉   | 20/29 [00:00<00:00, 21.80it/s, loss=0.107, v_num=]
+Epoch 287: 100%|██████████| 29/29 [00:01<00:00, 21.52it/s, loss=0.0985, v_num=]
+Epoch 287:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0985, v_num=]         
+Epoch 288:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0985, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 288:  69%|██████▉   | 20/29 [00:00<00:00, 20.52it/s, loss=0.0985, v_num=]
+Epoch 288:  69%|██████▉   | 20/29 [00:00<00:00, 20.50it/s, loss=0.104, v_num=] 
+Epoch 288: 100%|██████████| 29/29 [00:01<00:00, 20.47it/s, loss=0.103, v_num=]
+Epoch 288:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]         
+Epoch 289:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.103, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 289:  69%|██████▉   | 20/29 [00:00<00:00, 20.44it/s, loss=0.103, v_num=]
+Epoch 289:  69%|██████▉   | 20/29 [00:00<00:00, 20.43it/s, loss=0.106, v_num=]
+Epoch 289: 100%|██████████| 29/29 [00:01<00:00, 20.83it/s, loss=0.117, v_num=]
+Epoch 289:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.117, v_num=]         
+Epoch 290:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.117, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 290:  69%|██████▉   | 20/29 [00:00<00:00, 21.11it/s, loss=0.117, v_num=]
+Epoch 290:  69%|██████▉   | 20/29 [00:00<00:00, 21.09it/s, loss=0.109, v_num=]
+Epoch 290: 100%|██████████| 29/29 [00:01<00:00, 21.37it/s, loss=0.0992, v_num=]Evaluating...
+NMI : 0.7106625224552209, ARI: 0.5415813740209099, ACC: 0.46583, current K: 7
+Epoch 290 | NMI: 0.7107, ARI: 0.5416, ACC: 0.4658, current K: 7
+Confusion Matrix:
+[[ 14   0   0   0   0 285   1   0   0   0   0   0]
+ [ 14   0   0   0   0   1 285   0   0   0   0   0]
+ [ 25   0   0   0   0 274   1   0   0   0   0   0]
+ [ 20   0   0   0   0   0 280   0   0   0   0   0]
+ [ 22 275   1   2   0   0   0   0   0   0   0   0]
+ [ 30   1 268   0   1   0   0   0   0   0   0   0]
+ [ 38 262   0   0   0   0   0   0   0   0   0   0]
+ [ 25   0 274   0   1   0   0   0   0   0   0   0]
+ [ 35  10   0 253   2   0   0   0   0   0   0   0]
+ [ 30   0   3   0 267   0   0   0   0   0   0   0]
+ [ 34  13   1 252   0   0   0   0   0   0   0   0]
+ [ 37   1   9   0 253   0   0   0   0   0   0   0]]
+
+Epoch 290:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0992, v_num=]         
+Epoch 291:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0992, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 291:  69%|██████▉   | 20/29 [00:00<00:00, 21.47it/s, loss=0.0992, v_num=]
+Epoch 291:  69%|██████▉   | 20/29 [00:00<00:00, 21.46it/s, loss=0.0986, v_num=]
+Epoch 291: 100%|██████████| 29/29 [00:01<00:00, 21.05it/s, loss=0.0928, v_num=]
+Epoch 291:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0928, v_num=]         
+Epoch 292:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0928, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 292:  69%|██████▉   | 20/29 [00:01<00:00, 15.95it/s, loss=0.0928, v_num=]
+Epoch 292:  69%|██████▉   | 20/29 [00:01<00:00, 15.94it/s, loss=0.106, v_num=] 
+Epoch 292: 100%|██████████| 29/29 [00:01<00:00, 15.78it/s, loss=0.0976, v_num=]
+Epoch 292:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0976, v_num=]         
+Epoch 293:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0976, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 293:  69%|██████▉   | 20/29 [00:01<00:00, 15.43it/s, loss=0.0976, v_num=]
+Epoch 293:  69%|██████▉   | 20/29 [00:01<00:00, 15.42it/s, loss=0.101, v_num=] 
+Epoch 293: 100%|██████████| 29/29 [00:01<00:00, 16.97it/s, loss=0.108, v_num=]
+Epoch 293:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.108, v_num=]         
+Epoch 294:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.108, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 294:  69%|██████▉   | 20/29 [00:01<00:00, 19.96it/s, loss=0.108, v_num=]
+Epoch 294:  69%|██████▉   | 20/29 [00:01<00:00, 19.94it/s, loss=0.102, v_num=]
+Epoch 294: 100%|██████████| 29/29 [00:01<00:00, 20.12it/s, loss=0.105, v_num=]
+Epoch 294:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]         
+Epoch 295:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.105, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 295:  69%|██████▉   | 20/29 [00:00<00:00, 21.22it/s, loss=0.105, v_num=]
+Epoch 295:  69%|██████▉   | 20/29 [00:00<00:00, 21.21it/s, loss=0.101, v_num=]
+Epoch 295: 100%|██████████| 29/29 [00:01<00:00, 21.18it/s, loss=0.0991, v_num=]/content/DeepDPM-New/src/clustering_models/clusternet_modules/clusternetasmodel.py:672: UserWarning: To copy construct from a tensor, it is recommended to use sourceTensor.detach().clone() or sourceTensor.detach().clone().requires_grad_(True), rather than torch.tensor(sourceTensor).
+  mus_ind_to_split = torch.nonzero(torch.tensor(split_decisions), as_tuple=False)
+Splitting clusters [3 4 6]
+Evaluating...
+NMI : 0.7076895866272037, ARI: 0.5387896482989233, ACC: 0.46417, current K: 7
+[Split] K updated → 10 clusters
+  [Epoch 295] losses at split → cluster_loss=0.0652, subcluster_loss=0.1433
+
+Epoch 295:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0991, v_num=]         
+Epoch 296:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.0991, v_num=]/usr/local/lib/python3.12/dist-packages/torch/utils/data/dataloader.py:432: UserWarning: This DataLoader will create 6 worker processes in total. Our suggested max number of worker in current system is 2, which is smaller than what this DataLoader is going to create. Please be aware that excessive worker creation might get DataLoader running slow or even freeze, lower the worker number to avoid potential slowness/freeze if necessary.
+  self.check_worker_number_rationality()
+
+Epoch 296:  69%|██████▉   | 20/29 [00:01<00:00, 18.40it/s, loss=0.0991, v_num=]
+Epoch 296:  69%|██████▉   | 20/29 [00:01<00:00, 18.38it/s, loss=0.283, v_num=] 
+Epoch 296: 100%|██████████| 29/29 [00:01<00:00, 18.15it/s, loss=0.277, v_num=]
+Epoch 296:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.277, v_num=]         
+Epoch 297:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.277, v_num=]
+Epoch 297:  69%|██████▉   | 20/29 [00:01<00:00, 18.42it/s, loss=0.277, v_num=]
+Epoch 297:  69%|██████▉   | 20/29 [00:01<00:00, 18.41it/s, loss=0.271, v_num=]
+Epoch 297: 100%|██████████| 29/29 [00:01<00:00, 18.47it/s, loss=0.259, v_num=]
+Epoch 297:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.259, v_num=]         
+Epoch 298:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.259, v_num=]
+Epoch 298:  69%|██████▉   | 20/29 [00:01<00:00, 18.64it/s, loss=0.259, v_num=]
+Epoch 298:  69%|██████▉   | 20/29 [00:01<00:00, 18.62it/s, loss=0.257, v_num=]
+Epoch 298: 100%|██████████| 29/29 [00:01<00:00, 18.23it/s, loss=0.245, v_num=]
+Epoch 298:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.245, v_num=]         
+Epoch 299:   0%|          | 0/29 [00:00<?, ?it/s, loss=0.245, v_num=]
+Epoch 299:  69%|██████▉   | 20/29 [00:01<00:00, 18.27it/s, loss=0.245, v_num=]
+Epoch 299:  69%|██████▉   | 20/29 [00:01<00:00, 18.26it/s, loss=0.239, v_num=]
+Epoch 299: 100%|██████████| 29/29 [00:01<00:00, 17.61it/s, loss=0.251, v_num=]
+Epoch 299: 100%|██████████| 29/29 [00:01<00:00, 17.32it/s, loss=0.251, v_num=]
+Finished training!
+Training history plot saved to: logs/mnist347_bigpairs_baseline/training_history.png
+NMI: 0.76462, ARI: 0.62108, acc: 0.66194, final K: 10

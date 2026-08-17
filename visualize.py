@@ -25,6 +25,7 @@ Usage:
 
 import argparse
 import json
+import os
 
 import numpy as np
 import torch
@@ -34,11 +35,39 @@ from sklearn.metrics import silhouette_score
 
 
 def Visualize(out, digits=None, rotations=None, reducer="pca"):
-    data = torch.load(out + "/train_data.pt")          # (N, 2, D)
-    labels = torch.load(out + "/train_labels.pt")       # (N,) class id
-    pair_labels = torch.load(out + "/train_pair_labels.pt")  # (N,) 1.0/0.0 same-class
+    data = torch.load(out + "/train_data.pt")
+    labels = torch.load(out + "/train_labels.pt")
 
-    with open(out + "/metadata.json") as f:
+    # Auto-detect paired (N, 2, D) vs unpaired (N, D) layout -- the newer
+    # generator (generate_mnist_rotation_pairs.py) saves BOTH: the paired
+    # subset at <out>/train_data.pt, and the full, unpaired dataset at
+    # <out>/unpaired/train_data.pt. The unpaired one has no
+    # train_pair_labels.pt (there's no pairing to report) and usually has
+    # far more points, since it isn't limited to whatever a restrictive
+    # --rotation-pairs list happened to select as anchors/partners.
+    if data.ndim == 3:
+        embs = data[:, 0, :].numpy()   # paired: use only the anchor view
+        pair_labels_path = out + "/train_pair_labels.pt"
+        try:
+            pair_labels = torch.load(pair_labels_path)
+            pair_info = (f"Pair labels: {int(pair_labels.sum())} same / "
+                         f"{int((1 - pair_labels).sum())} different out of {len(pair_labels)} pairs.")
+        except FileNotFoundError:
+            pair_info = "(no train_pair_labels.pt found)"
+    else:
+        embs = data.numpy()            # unpaired: already flat
+        pair_info = "(unpaired dataset -- no pair labels)"
+
+    lbl_np = labels.numpy()
+
+    # metadata.json is only saved once, at the top-level out_dir -- if
+    # visualizing the unpaired/ subfolder directly, fall back to the parent.
+    meta_path = out + "/metadata.json"
+    if not os.path.exists(meta_path):
+        parent_meta_path = os.path.join(os.path.dirname(out.rstrip("/")), "metadata.json")
+        if os.path.exists(parent_meta_path):
+            meta_path = parent_meta_path
+    with open(meta_path) as f:
         meta = json.load(f)
 
     class_names = meta["class_names"]                  # list, index = class id
@@ -52,14 +81,8 @@ def Visualize(out, digits=None, rotations=None, reducer="pca"):
     n_digits = len(digits)
     n_rots = len(rotations)
 
-    # Use only the FIRST embedding of each pair (the anchor)
-    embs = data[:, 0, :].numpy()   # (N, D)
-    lbl_np = labels.numpy()
-
     print(f"Loaded {len(embs)} points, {n_classes} classes "
-          f"({n_digits} digits x {n_rots} rotations). "
-          f"Pair labels: {int(pair_labels.sum())} same / "
-          f"{int((1 - pair_labels).sum())} different out of {len(pair_labels)} pairs.")
+          f"({n_digits} digits x {n_rots} rotations). {pair_info}")
 
     # ── Reduce to 2D just for plotting ──────────────────────────────────────
     # NOTE: if `embs` was already produced by UMAP (e.g. from
@@ -149,6 +172,86 @@ def Visualize(out, digits=None, rotations=None, reducer="pca"):
         "silhouette_digit": s_digit,
         "silhouette_rotation": s_rot,
     }
+
+
+def VisualizeByDigit(out, digit, digits=None, rotations=None, reducer="pca"):
+    """Filters to a single digit's points and reduces ONLY those to 2D,
+    colored by rotation. Digit-level variance dominates a global (all-digit)
+    2D projection, which can visually hide real rotation sub-structure even
+    when it's genuinely present in the full-dimensional embedding (a
+    non-trivial rotation silhouette computed on the full data doesn't
+    guarantee it's visible in a 2D view where digit separation eats most of
+    the available projection "budget"). Removing digit variance from the
+    picture lets rotation become the dominant remaining signal, so any real
+    within-digit clustering should become visible here if it exists.
+    """
+    data = torch.load(out + "/train_data.pt")
+    labels = torch.load(out + "/train_labels.pt")
+    embs = (data[:, 0, :].numpy() if data.ndim == 3 else data.numpy())
+    lbl_np = labels.numpy()
+
+    meta_path = out + "/metadata.json"
+    if not os.path.exists(meta_path):
+        parent_meta_path = os.path.join(os.path.dirname(out.rstrip("/")), "metadata.json")
+        if os.path.exists(parent_meta_path):
+            meta_path = parent_meta_path
+    with open(meta_path) as f:
+        meta = json.load(f)
+
+    class_names = meta["class_names"]
+    if digits is None:
+        digits = meta.get("digits")
+    if rotations is None:
+        rotations = meta.get("rotations")
+    n_rots = len(rotations)
+
+    if digit not in digits:
+        raise ValueError(f"digit {digit} not in dataset's digits {digits}")
+    digit_i = digits.index(digit)
+    # class ids for this digit span [digit_i*n_rots, digit_i*n_rots + n_rots)
+    mask = (lbl_np >= digit_i * n_rots) & (lbl_np < (digit_i + 1) * n_rots)
+    sub_embs = embs[mask]
+    sub_labels = lbl_np[mask]
+    rot_idx_np = sub_labels - digit_i * n_rots   # 0..n_rots-1
+
+    if len(sub_embs) < 5:
+        print(f"Only {len(sub_embs)} points for digit {digit} -- too few to visualize meaningfully.")
+        return None
+
+    print(f"Digit {digit}: {len(sub_embs)} points, reducing ONLY this subset to 2D "
+          f"(removes digit-level variance from the projection)...")
+
+    if sub_embs.shape[1] == 2:
+        embs_2d = sub_embs
+    elif reducer == "umap":
+        import umap
+        embs_2d = umap.UMAP(n_components=2, random_state=42).fit_transform(sub_embs)
+    else:
+        from sklearn.decomposition import PCA
+        pca = PCA(n_components=2, random_state=42)
+        embs_2d = pca.fit_transform(sub_embs)
+        print(f"  PCA explained variance (top 2 PCs, digit {digit} only): {pca.explained_variance_ratio_.sum():.3f}")
+
+    rot_names = [f"{r}\u00b0" for r in rotations]
+    colors_rot = cm.get_cmap("Set1")(np.linspace(0, 0.4, max(n_rots, 2)))
+
+    fig, ax = plt.subplots(figsize=(7, 6))
+    for r in range(n_rots):
+        m = rot_idx_np == r
+        ax.scatter(embs_2d[m, 0], embs_2d[m, 1], color=colors_rot[r], label=rot_names[r], s=30, alpha=0.7)
+    ax.set_title(f"Digit {digit} only, coloured by rotation ({len(sub_embs)} points)", fontsize=13)
+    ax.legend(fontsize=9)
+    ax.set_xlabel("dim-1"); ax.set_ylabel("dim-2")
+    plt.tight_layout()
+    save_path = f"{out}/digit_{digit}_rotation_only.png"
+    plt.savefig(save_path, dpi=150)
+    plt.show()
+
+    if n_rots > 1:
+        s = silhouette_score(sub_embs, rot_idx_np, metric="euclidean")
+        print(f"  Rotation silhouette WITHIN digit {digit} only: {s:.3f}")
+        return s
+    return None
 
 
 if __name__ == "__main__":
