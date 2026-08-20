@@ -432,10 +432,17 @@ def train_cluster_net():
     
     trainer = pl.Trainer(logger=logger, max_epochs=args.max_epochs, gpus=args.gpus, num_sanity_val_steps=0, checkpoint_callback=checkpoint_callback, limit_train_batches=args.limit_train_batches, limit_val_batches=args.limit_val_batches)
     trainer.fit(model, train_loader, val_loader)
-
+    
     print("Finished training!")
+    
     history_path = os.path.join("logs", args.exp_name, "training_history.png")
     model.plot_training_history(save_path=history_path)
+    
+    metrics_path = os.path.join("logs", args.exp_name, "metrics_history.png")
+    model.plot_metrics_history(save_path=metrics_path)
+    
+    cm_path = os.path.join("logs", args.exp_name, "confusion_matrix.png")
+    model.plot_confusion_matrix(save_path=cm_path)
     # evaluate last model
     dataset = dataset_obj.get_train_data()
     data = dataset.data
