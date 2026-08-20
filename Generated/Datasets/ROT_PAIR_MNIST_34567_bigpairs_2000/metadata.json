@@ -85,10 +85,10 @@
       180
     ]
   ],
-  "samples_per_class": 2000,
+  "samples_per_class": 1000,
   "embed_dim": 10,
   "pairs_per_combo": 100,
-  "cnn_epochs": 8,
+  "cnn_epochs": 20,
   "rotation_aux_weight": 0.3,
   "seed": 45
 }
