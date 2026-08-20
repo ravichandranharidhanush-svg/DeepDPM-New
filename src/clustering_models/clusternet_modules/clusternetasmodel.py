@@ -39,6 +39,7 @@
 # optimizers, plotting, logging — is the untouched original.
 
 from argparse import ArgumentParser
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import confusion_matrix
@@ -129,6 +130,15 @@ class ClusterNetModel(pl.LightningModule):
         self._epoch_subcluster_losses = []
         self._epoch_pairwise_losses = []
         self._epoch_sub_pairwise_losses = []
+
+        # ---- NMI/ARI/ACC history, tracked separately per stage since
+        # log_clustering_metrics runs at a different cadence (every
+        # evaluate_every_n_epochs) than the per-epoch loss history above,
+        # and can be called for "train", "val", or "total" ----
+        self.metrics_history = {
+            stage: {"epoch": [], "nmi": [], "ari": [], "acc": [], "k": []}
+            for stage in ("train", "val", "total")
+        }
 
     # ------------------------------------------------------------------
     # Pairwise contrastive loss (new — the pairwise-supervision concept)
@@ -878,6 +888,13 @@ class ClusterNetModel(pl.LightningModule):
         self.log(f"cluster_net_train/{stage}/{stage}_acc_top5", acc_top5, on_epoch=True, on_step=False)
         self.log(f"cluster_net_train/{stage}/unique_z", unique_z, on_epoch=True, on_step=False)
 
+        # ---- record for the final metrics-vs-epoch plot ----
+        self.metrics_history[stage]["epoch"].append(self.current_epoch)
+        self.metrics_history[stage]["nmi"].append(gt_nmi)
+        self.metrics_history[stage]["ari"].append(ari)
+        self.metrics_history[stage]["acc"].append(acc)
+        self.metrics_history[stage]["k"].append(unique_z)
+
         if self.hparams.offline and ((self.hparams.log_metrics_at_train and stage == "train") or (not self.hparams.log_metrics_at_train and stage != "train")):
             print(f"NMI : {gt_nmi}, ARI: {ari}, ACC: {acc}, current K: {unique_z}")
         if self.current_epoch % 10 == 0 and self.current_epoch > 45:
@@ -961,6 +978,135 @@ class ClusterNetModel(pl.LightningModule):
         plt.savefig(save_path, dpi=150, bbox_inches="tight")
         plt.close(fig)
         print(f"Training history plot saved to: {save_path}")
+        return fig
+
+    def plot_metrics_history(self, save_path="logs/metrics_history.png", stage=None):
+        """Plot NMI, ARI, and ACC vs. epoch in one figure. Call this after
+        trainer.fit() completes, alongside plot_training_history().
+
+        stage: which metrics_history stream to plot ("train", "val", or
+        "total"). If None (default), uses "train" if it has data (i.e.
+        --log_metrics_at_train was on), otherwise falls back to "val"
+        (which is always populated every --evaluate_every_n_epochs
+        regardless of that flag), then "total" as a last resort.
+        """
+        if stage is None:
+            for candidate in ("train", "val", "total"):
+                if len(self.metrics_history[candidate]["epoch"]) > 0:
+                    stage = candidate
+                    break
+            else:
+                print("No metrics history recorded in any stage -- nothing to plot.")
+                return None
+
+        data = self.metrics_history[stage]
+        epochs = data["epoch"]
+        if len(epochs) == 0:
+            print(f"No metrics history recorded for stage='{stage}' -- nothing to plot.")
+            return None
+
+        fig, axes = plt.subplots(1, 3, figsize=(16, 4.5))
+
+        ax = axes[0]
+        ax.plot(epochs, data["nmi"], color="tab:blue", marker="o", markersize=3)
+        ax.set_title("NMI")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("NMI")
+        ax.set_ylim(0, 1)
+        ax.grid(alpha=0.3)
+
+        ax = axes[1]
+        ax.plot(epochs, data["ari"], color="tab:orange", marker="o", markersize=3)
+        ax.set_title("ARI")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("ARI")
+        ax.set_ylim(0, 1)
+        ax.grid(alpha=0.3)
+
+        ax = axes[2]
+        ax.plot(epochs, data["acc"], color="tab:green", marker="o", markersize=3)
+        ax.set_title("ACC")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("ACC")
+        ax.set_ylim(0, 1)
+        ax.grid(alpha=0.3)
+
+        plt.suptitle(f"Clustering metrics vs. epoch (stage='{stage}')", fontsize=14, y=1.02)
+        plt.tight_layout()
+
+        out_dir = os.path.dirname(save_path)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+        plt.savefig(save_path, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Metrics history plot saved to: {save_path}")
+        return fig
+
+    def plot_confusion_matrix(self, save_path="logs/confusion_matrix.png", stage=None):
+        """Plot a final confusion matrix (ground-truth label vs. predicted
+        cluster) as a heatmap. Call this after trainer.fit() completes,
+        using whatever the last available responsibilities are.
+
+        stage: "train", "val", or "total" -- selects which stored
+        responsibilities/ground-truth to use. If None (default), prefers
+        "val" (freshest, held-out-ish assignments from the last validation
+        pass), falling back to "train" if val data isn't available.
+        """
+        if stage is None:
+            stage = "val" if len(getattr(self, "val_gt", [])) > 0 else "train"
+
+        if stage == "train":
+            gt, resp = self.train_gt, self.train_resp
+        elif stage == "val":
+            gt, resp = self.val_gt, self.val_resp
+        elif stage == "total":
+            gt, resp = torch.cat([self.train_gt, self.val_gt]), torch.cat([self.train_resp, self.val_resp])
+        else:
+            raise ValueError(f"stage must be 'train', 'val', or 'total', got {stage!r}")
+
+        if len(gt) == 0:
+            print(f"No data available for stage='{stage}' -- cannot plot confusion matrix.")
+            return None
+
+        z = resp.argmax(axis=1).cpu().numpy()
+        gt_np = gt.cpu().numpy() if torch.is_tensor(gt) else np.asarray(gt)
+        if (gt_np < 0).any():
+            z = z[gt_np > -1]
+            gt_np = gt_np[gt_np > -1]
+
+        cm = confusion_matrix(gt_np, z)
+
+        fig, ax = plt.subplots(figsize=(max(6, cm.shape[1] * 0.6), max(5, cm.shape[0] * 0.6)))
+        im = ax.imshow(cm, cmap="Blues")
+        plt.colorbar(im, ax=ax, label="count")
+
+        # annotate each cell with its count
+        thresh = cm.max() / 2.0 if cm.max() > 0 else 0
+        for i in range(cm.shape[0]):
+            for j in range(cm.shape[1]):
+                ax.text(j, i, str(cm[i, j]), ha="center", va="center",
+                        color="white" if cm[i, j] > thresh else "black", fontsize=8)
+
+        ax.set_xlabel("Predicted cluster")
+        ax.set_ylabel("Ground-truth label")
+        ax.set_xticks(range(cm.shape[1]))
+        ax.set_yticks(range(cm.shape[0]))
+
+        title = f"Confusion matrix (stage='{stage}', final K={self.K})"
+        if len(self.metrics_history[stage]["nmi"]) > 0:
+            last_nmi = self.metrics_history[stage]["nmi"][-1]
+            last_acc = self.metrics_history[stage]["acc"][-1]
+            title += f"\nNMI={last_nmi:.4f}, ACC={last_acc:.4f}"
+        ax.set_title(title)
+
+        plt.tight_layout()
+
+        out_dir = os.path.dirname(save_path)
+        if out_dir:
+            os.makedirs(out_dir, exist_ok=True)
+        plt.savefig(save_path, dpi=150, bbox_inches="tight")
+        plt.close(fig)
+        print(f"Confusion matrix plot saved to: {save_path}")
         return fig
 
     @staticmethod
