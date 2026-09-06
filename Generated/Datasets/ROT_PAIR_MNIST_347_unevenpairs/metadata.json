@@ -78,9 +78,9 @@
   "samples_per_class": 1000,
   "embed_dim": 10,
   "pairs_per_combo": [
-    50,
+    100,
     80,
-    30
+    50
   ],
   "cnn_epochs": 15,
   "rotation_aux_weight": 0.3,
