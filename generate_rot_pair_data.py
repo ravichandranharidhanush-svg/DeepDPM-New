@@ -326,13 +326,21 @@ def generate_mnist_rotation_embeddings(
 def build_custom_rotation_pairs(codes, digit_idx, rot_idx, labels, digits, rotations,
                                  rotation_pairs, pairs_per_combo=5, seed=45):
     """For each digit, and for each (ra, rb) in rotation_pairs (given as
-    actual rotation VALUES, e.g. degrees), draws `pairs_per_combo`
+    actual rotation VALUES, e.g. degrees), draws pairs_per_combo
     anchor/partner pairs with anchor rotation ra and partner rotation rb.
     z = 1.0 if ra == rb, else 0.0. Only the listed combinations are
     produced -- nothing else.
 
+    pairs_per_combo: either a single int (broadcast -- same number of
+    pairs drawn per combination for every digit) OR a list of ints, one
+    per digit in `digits` (e.g. digits=[3,4,7], pairs_per_combo=[50,10,5]
+    draws 50 pairs per rotation-combo for digit 3, 10 for digit 4, 5 for
+    digit 7 -- lets you generate MORE pairwise supervision for classes you
+    care more about, or where you specifically want to test whether more
+    pair supervision helps a harder class).
+
     Returns:
-        paired_codes: (M, 2, D) float32, M = n_digits * len(rotation_pairs) * pairs_per_combo
+        paired_codes: (M, 2, D) float32
         paired_labels: (M,) int64 -- anchor's full class id
         pair_labels: (M,) float32
         partner_labels: (M,) int64 -- partner's full class id (for the sample printout)
@@ -340,6 +348,15 @@ def build_custom_rotation_pairs(codes, digit_idx, rot_idx, labels, digits, rotat
     rng = np.random.default_rng(seed)
     n_digits = len(digits)
     rot_value_to_idx = {r: i for i, r in enumerate(rotations)}
+
+    if isinstance(pairs_per_combo, (list, tuple)):
+        if len(pairs_per_combo) != n_digits:
+            raise ValueError(f"pairs_per_combo list has {len(pairs_per_combo)} entries "
+                              f"but there are {n_digits} digits -- must match, or pass a single int.")
+        pairs_per_combo_per_digit = list(pairs_per_combo)
+    else:
+        pairs_per_combo_per_digit = [pairs_per_combo] * n_digits
+    print(f"Pairs per rotation-combo per digit: {dict(zip(digits, pairs_per_combo_per_digit))}")
 
     for ra, rb in rotation_pairs:
         if ra not in rot_value_to_idx or rb not in rot_value_to_idx:
@@ -357,13 +374,14 @@ def build_custom_rotation_pairs(codes, digit_idx, rot_idx, labels, digits, rotat
     paired_codes, paired_labels, pair_labels, partner_labels = [], [], [], []
 
     for di in range(n_digits):
+        n_pairs_this_digit = pairs_per_combo_per_digit[di]
         for ra_val, rb_val in rotation_pairs:
             ra, rb = rot_value_to_idx[ra_val], rot_value_to_idx[rb_val]
             anchor_pool = by_digit_rot[(di, ra)]
             partner_pool = by_digit_rot[(di, rb)]
             z = 1.0 if ra == rb else 0.0
 
-            for _ in range(pairs_per_combo):
+            for _ in range(n_pairs_this_digit):
                 anchor_idx = int(rng.choice(anchor_pool))
                 if ra == rb:
                     if len(partner_pool) > 1:
@@ -452,7 +470,11 @@ def main():
                               "digit in the SAME ORDER as --digits (e.g. --digits 3 4 7 --samples-per-class 500 800 300 "
                               "pulls 500 of digit 3, 800 of digit 4, 300 of digit 7).")
     parser.add_argument("--embed-dim", type=int, default=10)
-    parser.add_argument("--pairs-per-combo", type=int, default=5, help="Pairs drawn per digit per rotation-pair combination")
+    parser.add_argument("--pairs-per-combo", type=int, nargs="+", default=[5],
+                         help="Pairs drawn per rotation-combo, per digit. Pass a single value to use the same "
+                              "count for every digit (e.g. --pairs-per-combo 20), or one value per digit in the "
+                              "SAME ORDER as --digits (e.g. --digits 3 4 7 --pairs-per-combo 50 10 5 draws 50 pairs "
+                              "per combo for digit 3, 10 for digit 4, 5 for digit 7).")
     parser.add_argument("--cnn-epochs", type=int, default=15)
     parser.add_argument("--cnn-lr", type=float, default=1e-3)
     parser.add_argument("--cnn-weight-decay", type=float, default=1e-4)
@@ -478,6 +500,18 @@ def main():
         samples_per_class = args.samples_per_class
     else:
         print(f"ERROR: --samples-per-class got {len(args.samples_per_class)} value(s) "
+              f"but --digits has {len(args.digits)} entries. Pass either a single value "
+              f"(same count for every digit) or exactly one value per digit.")
+        sys.exit(1)
+
+    # resolve --pairs-per-combo: either a single value (broadcast) or
+    # one per digit, in the same order as --digits
+    if len(args.pairs_per_combo) == 1:
+        pairs_per_combo = args.pairs_per_combo[0]
+    elif len(args.pairs_per_combo) == len(args.digits):
+        pairs_per_combo = args.pairs_per_combo
+    else:
+        print(f"ERROR: --pairs-per-combo got {len(args.pairs_per_combo)} value(s) "
               f"but --digits has {len(args.digits)} entries. Pass either a single value "
               f"(same count for every digit) or exactly one value per digit.")
         sys.exit(1)
@@ -514,7 +548,7 @@ def main():
         codes, digit_idx, rot_idx, labels,
         digits=args.digits, rotations=rotations,
         rotation_pairs=rotation_pairs,
-        pairs_per_combo=args.pairs_per_combo,
+        pairs_per_combo=pairs_per_combo,
         seed=args.seed,
     )
     save_paired_dataset(args.out_dir, paired_codes, paired_labels, pair_labels, split="train")
@@ -527,7 +561,7 @@ def main():
             "rotation_pairs": rotation_pairs,
             "samples_per_class": samples_per_class,
             "embed_dim": args.embed_dim,
-            "pairs_per_combo": args.pairs_per_combo,
+            "pairs_per_combo": pairs_per_combo,
             "cnn_epochs": args.cnn_epochs,
             "rotation_aux_weight": args.rotation_aux_weight,
             "seed": args.seed,
