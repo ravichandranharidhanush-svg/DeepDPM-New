@@ -58,6 +58,7 @@ environments that block torchvision's hosting mirrors).
 import argparse
 import json
 import os
+import sys
 
 import numpy as np
 import torch
@@ -83,9 +84,16 @@ def generate_mnist_rotation_embeddings(
     l2_normalize_embed=True,
     device=None,
 ):
-    """Downloads MNIST, builds `samples_per_class` rotated images for every
-    (digit, rotation) combination, trains a two-head CNN (digit + rotation),
-    and returns the penultimate-layer embedding for every image.
+    """Downloads MNIST, builds rotated images for every (digit, rotation)
+    combination, trains a two-head CNN (digit + rotation), and returns the
+    penultimate-layer embedding for every image.
+
+    samples_per_class: either a single int (broadcast to every digit, same
+    count for all) OR a list of ints, one per digit in `digits`, e.g.
+    digits=[3,4,7], samples_per_class=[500, 800, 300] pulls 500 images of
+    digit 3, 800 of digit 4, 300 of digit 7 -- each still expanded across
+    every requested rotation, so digit 3 contributes 500 * len(rotations)
+    total images, digit 4 contributes 800 * len(rotations), etc.
 
     Architecture: 3 conv blocks (Conv2d+BatchNorm+ReLU+MaxPool, channels
     16->32->64) -> global average pool -> FC embedding layer -> dropout ->
@@ -136,6 +144,17 @@ def generate_mnist_rotation_embeddings(
     n_digits = len(digits)
     n_rots = len(rotations)
 
+    # Resolve samples_per_class to one count per digit -- accepts a single
+    # int (broadcast to all digits) or a list matching len(digits).
+    if isinstance(samples_per_class, (list, tuple)):
+        if len(samples_per_class) != n_digits:
+            raise ValueError(f"samples_per_class list has {len(samples_per_class)} entries "
+                              f"but there are {n_digits} digits -- must match, or pass a single int.")
+        samples_per_digit = list(samples_per_class)
+    else:
+        samples_per_digit = [samples_per_class] * n_digits
+    print(f"Samples per digit: {dict(zip(digits, samples_per_digit))}")
+
     all_images = []
     labels = []
     digit_idx_list = []
@@ -144,12 +163,13 @@ def generate_mnist_rotation_embeddings(
 
     class_idx = 0
     for di, digit in enumerate(digits):
+        n_samples_this_digit = samples_per_digit[di]
         pool_mask = dataset.targets == digit
         pool = dataset.data[pool_mask]
-        if len(pool) < samples_per_class:
+        if len(pool) < n_samples_this_digit:
             raise ValueError(f"Not enough MNIST images for digit {digit}: requested "
-                              f"{samples_per_class}, only {len(pool)} available.")
-        chosen = rng.choice(len(pool), size=samples_per_class, replace=False)
+                              f"{n_samples_this_digit}, only {len(pool)} available.")
+        chosen = rng.choice(len(pool), size=n_samples_this_digit, replace=False)
         base_imgs = pool[chosen].float()
 
         for ri, rot in enumerate(rotations):
@@ -158,9 +178,9 @@ def generate_mnist_rotation_embeddings(
                 for img in base_imgs
             ])
             all_images.append((rotated / 255.0).unsqueeze(1))
-            labels.append(np.full(samples_per_class, class_idx, dtype=np.int64))
-            digit_idx_list.append(np.full(samples_per_class, di, dtype=np.int64))
-            rot_idx_list.append(np.full(samples_per_class, ri, dtype=np.int64))
+            labels.append(np.full(n_samples_this_digit, class_idx, dtype=np.int64))
+            digit_idx_list.append(np.full(n_samples_this_digit, di, dtype=np.int64))
+            rot_idx_list.append(np.full(n_samples_this_digit, ri, dtype=np.int64))
             class_names.append(f"{digit}_{ri}")
             class_idx += 1
 
@@ -237,16 +257,49 @@ def generate_mnist_rotation_embeddings(
 
         model.eval()
         val_correct_digit, val_correct_rot, val_seen = 0, 0, 0
+        val_digit_preds, val_digit_true = [], []
         with torch.no_grad():
             for xb, yb_digit, yb_rot in val_dl:
                 xb, yb_digit, yb_rot = xb.to(device), yb_digit.to(device), yb_rot.to(device)
                 digit_logits, rot_logits = model(xb)
-                val_correct_digit += (digit_logits.argmax(-1) == yb_digit).sum().item()
+                pred_digit = digit_logits.argmax(-1)
+                val_correct_digit += (pred_digit == yb_digit).sum().item()
                 val_correct_rot += (rot_logits.argmax(-1) == yb_rot).sum().item()
                 val_seen += len(xb)
+                val_digit_preds.append(pred_digit.cpu())
+                val_digit_true.append(yb_digit.cpu())
         print(f"  epoch {epoch+1}/{cnn_epochs}: train_loss={total_loss/n_seen:.4f} "
               f"val_digit_acc={(val_correct_digit/val_seen if val_seen else float('nan')):.3f} "
               f"val_rotation_acc={(val_correct_rot/val_seen if val_seen else float('nan')):.3f}")
+
+    # ── Per-digit accuracy + confusion matrix on the FINAL epoch's val predictions ──
+    # This shows which SPECIFIC digit pairs are the bottleneck (e.g. 1 vs 7,
+    # 2 vs 5) rather than just one aggregate accuracy number that hides which
+    # digits are actually the problem -- especially useful when moving to
+    # harder, larger digit sets where overall accuracy alone doesn't tell you
+    # where to focus (more/fewer epochs, different digit choices, etc.).
+    if val_digit_preds:
+        val_digit_preds = torch.cat(val_digit_preds).numpy()
+        val_digit_true = torch.cat(val_digit_true).numpy()
+        print(f"\nPer-digit validation accuracy (final epoch):")
+        for di, digit in enumerate(digits):
+            mask = val_digit_true == di
+            if mask.sum() > 0:
+                acc = (val_digit_preds[mask] == di).mean()
+                print(f"  digit {digit}: {acc:.3f} ({mask.sum()} val samples)")
+
+        try:
+            from sklearn.metrics import confusion_matrix
+            cm_digit = confusion_matrix(val_digit_true, val_digit_preds, labels=list(range(n_digits)))
+            print(f"\nDigit confusion matrix (rows=true, cols=predicted, order={digits}):")
+            header = "        " + "".join(f"{d:>6}" for d in digits)
+            print(header)
+            for di, digit in enumerate(digits):
+                row = "".join(f"{cm_digit[di, dj]:>6}" for dj in range(n_digits))
+                print(f"  {digit:>4}: {row}")
+            print("  (off-diagonal entries show which digit pairs are confused with each other)\n")
+        except Exception as e:
+            print(f"  (confusion matrix skipped: {e})\n")
 
     model.eval()
     with torch.no_grad():
@@ -255,10 +308,10 @@ def generate_mnist_rotation_embeddings(
     # ── Immediate silhouette report -- no separate visualize round trip needed ──
     try:
         from sklearn.metrics import silhouette_score
-        print("\nEmbedding quality check (on the full generated set, before pairing):")
+        print("Embedding quality check (on the full generated set, before pairing):")
         print(f"  digit silhouette:    {silhouette_score(codes, digit_idx):.3f}")
         print(f"  rotation silhouette: {silhouette_score(codes, rot_idx):.3f}")
-        print(f"  full-class (12-way) silhouette: {silhouette_score(codes, labels):.3f}")
+        print(f"  full-class ({len(class_names)}-way) silhouette: {silhouette_score(codes, labels):.3f}")
         print("  (rough guide: <0.15 weak, 0.15-0.4 moderate, >0.4 strong separation)\n")
     except Exception as e:
         print(f"  (silhouette check skipped: {e})\n")
@@ -393,7 +446,11 @@ def main():
                          help="Comma-separated 'a-b' rotation VALUE pairs (degrees), e.g. "
                               "'0-90,90-180,180-270,270-0'. The set of rotations actually generated "
                               "is inferred as the sorted unique values appearing here.")
-    parser.add_argument("--samples-per-class", type=int, default=1000, help="Images per (digit, rotation) combination")
+    parser.add_argument("--samples-per-class", type=int, nargs="+", default=[1000],
+                         help="Images per digit (each expanded across every rotation). Pass a single value to use "
+                              "the same count for every digit (e.g. --samples-per-class 500), or one value per "
+                              "digit in the SAME ORDER as --digits (e.g. --digits 3 4 7 --samples-per-class 500 800 300 "
+                              "pulls 500 of digit 3, 800 of digit 4, 300 of digit 7).")
     parser.add_argument("--embed-dim", type=int, default=10)
     parser.add_argument("--pairs-per-combo", type=int, default=5, help="Pairs drawn per digit per rotation-pair combination")
     parser.add_argument("--cnn-epochs", type=int, default=15)
@@ -413,6 +470,18 @@ def main():
     parser.add_argument("--out-dir", type=str, required=True)
     args = parser.parse_args()
 
+    # resolve --samples-per-class: either a single value (broadcast) or
+    # one per digit, in the same order as --digits
+    if len(args.samples_per_class) == 1:
+        samples_per_class = args.samples_per_class[0]
+    elif len(args.samples_per_class) == len(args.digits):
+        samples_per_class = args.samples_per_class
+    else:
+        print(f"ERROR: --samples-per-class got {len(args.samples_per_class)} value(s) "
+              f"but --digits has {len(args.digits)} entries. Pass either a single value "
+              f"(same count for every digit) or exactly one value per digit.")
+        sys.exit(1)
+
     # parse rotation-pairs and infer the rotation set from it
     rotation_pairs = []
     for token in args.rotation_pairs.split(","):
@@ -424,7 +493,7 @@ def main():
     codes, labels, class_names, digit_idx, rot_idx = generate_mnist_rotation_embeddings(
         digits=args.digits,
         rotations=rotations,
-        samples_per_class=args.samples_per_class,
+        samples_per_class=samples_per_class,
         embed_dim=args.embed_dim,
         seed=args.seed,
         mnist_root=args.mnist_root,
@@ -456,7 +525,7 @@ def main():
             "digits": args.digits,
             "rotations": rotations,
             "rotation_pairs": rotation_pairs,
-            "samples_per_class": args.samples_per_class,
+            "samples_per_class": samples_per_class,
             "embed_dim": args.embed_dim,
             "pairs_per_combo": args.pairs_per_combo,
             "cnn_epochs": args.cnn_epochs,
