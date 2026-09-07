@@ -82,6 +82,7 @@ def generate_mnist_rotation_embeddings(
     val_fraction=0.15,
     rotation_aux_weight=0.3,
     full_class_weight=1.0,
+    only_full_class_head=False,
     l2_normalize_embed=True,
     device=None,
 ):
@@ -130,6 +131,16 @@ def generate_mnist_rotation_embeddings(
     any confusion between two specific (digit, rotation) combinations.
     Default 1.0 (on). Set to 0 to disable and train with only the digit +
     rotation marginal heads (the original behavior).
+
+    only_full_class_head: if True, REMOVES the separate digit and rotation
+    heads entirely -- the model has only the full-class head, trained
+    purely on the joint (digit, rotation) label, and rotation_aux_weight /
+    full_class_weight are ignored (loss is just cross-entropy on the full
+    class). digit and rotation accuracy are still reported, but derived
+    POST-HOC by decoding the predicted full class back into its
+    (digit, rotation) components (class_idx = digit_i * n_rots + rot_i,
+    so digit_pred = pred // n_rots, rot_pred = pred % n_rots) -- these are
+    informational only, never used in the loss.
 
     Returns:
         codes: (N, embed_dim) float32
@@ -216,8 +227,9 @@ def generate_mnist_rotation_embeddings(
     val_dl = DataLoader(val_ds, batch_size=cnn_batch_size, shuffle=False)
 
     class DigitRotCNN(nn.Module):
-        def __init__(self, embed_dim, n_digits, n_rots, dropout=0.3):
+        def __init__(self, embed_dim, n_digits, n_rots, dropout=0.3, only_full_class_head=False):
             super().__init__()
+            self.only_full_class_head = only_full_class_head
             self.conv1 = nn.Conv2d(1, 16, 3, padding=1)
             self.bn1 = nn.BatchNorm2d(16)
             self.conv2 = nn.Conv2d(16, 32, 3, padding=1)
@@ -228,9 +240,10 @@ def generate_mnist_rotation_embeddings(
             self.dropout = nn.Dropout(dropout)
             self.fc_embed = nn.Linear(64, embed_dim)
             self.embed_bn = nn.BatchNorm1d(embed_dim)
-            self.fc_digit = nn.Linear(embed_dim, n_digits)
-            self.fc_rot = nn.Linear(embed_dim, n_rots)
             self.fc_full_class = nn.Linear(embed_dim, n_digits * n_rots)  # predicts the FULL joint class directly
+            if not only_full_class_head:
+                self.fc_digit = nn.Linear(embed_dim, n_digits)
+                self.fc_rot = nn.Linear(embed_dim, n_rots)
 
         def embed(self, x):
             x = Fnn.max_pool2d(Fnn.relu(self.bn1(self.conv1(x))), 2)   # 28->14
@@ -243,14 +256,19 @@ def generate_mnist_rotation_embeddings(
 
         def forward(self, x):
             e = self.embed(x)
+            if self.only_full_class_head:
+                return self.fc_full_class(e)
             return self.fc_digit(e), self.fc_rot(e), self.fc_full_class(e)
 
-    model = DigitRotCNN(embed_dim, n_digits, n_rots, dropout=cnn_dropout).to(device)
+    model = DigitRotCNN(embed_dim, n_digits, n_rots, dropout=cnn_dropout,
+                         only_full_class_head=only_full_class_head).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=cnn_lr, weight_decay=cnn_weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cnn_epochs)
 
     print(f"Training CNN ({cnn_epochs} epochs, embed_dim={embed_dim}, "
-          f"rotation_aux_weight={rotation_aux_weight}, full_class_weight={full_class_weight}, "
+          f"only_full_class_head={only_full_class_head}, "
+          f"rotation_aux_weight={rotation_aux_weight if not only_full_class_head else 'n/a'}, "
+          f"full_class_weight={full_class_weight if not only_full_class_head else 'n/a (sole head)'}, "
           f"l2_normalize={l2_normalize_embed}, dropout={cnn_dropout}, weight_decay={cnn_weight_decay})...")
     for epoch in range(cnn_epochs):
         model.train()
@@ -258,18 +276,30 @@ def generate_mnist_rotation_embeddings(
         for xb, yb_digit, yb_rot, yb_full in train_dl:
             xb, yb_digit, yb_rot, yb_full = xb.to(device), yb_digit.to(device), yb_rot.to(device), yb_full.to(device)
             optimizer.zero_grad()
-            digit_logits, rot_logits, full_logits = model(xb)
-            digit_loss = Fnn.cross_entropy(digit_logits, yb_digit)
-            rot_loss = Fnn.cross_entropy(rot_logits, yb_rot)
-            loss = digit_loss + rotation_aux_weight * rot_loss
-            if full_class_weight > 0:
-                full_loss = Fnn.cross_entropy(full_logits, yb_full)
-                loss = loss + full_class_weight * full_loss
+            if only_full_class_head:
+                full_logits = model(xb)
+                loss = Fnn.cross_entropy(full_logits, yb_full)
+                pred_full = full_logits.argmax(-1)
+                # digit/rotation "accuracy" here is derived POST-HOC by decoding
+                # the full-class prediction (class_idx = digit_i * n_rots + rot_i)
+                # -- informational only, never used in the loss.
+                pred_digit_derived = pred_full // n_rots
+                pred_rot_derived = pred_full % n_rots
+                n_correct_digit += (pred_digit_derived == yb_digit).sum().item()
+                n_correct_rot += (pred_rot_derived == yb_rot).sum().item()
+            else:
+                digit_logits, rot_logits, full_logits = model(xb)
+                digit_loss = Fnn.cross_entropy(digit_logits, yb_digit)
+                rot_loss = Fnn.cross_entropy(rot_logits, yb_rot)
+                loss = digit_loss + rotation_aux_weight * rot_loss
+                if full_class_weight > 0:
+                    full_loss = Fnn.cross_entropy(full_logits, yb_full)
+                    loss = loss + full_class_weight * full_loss
+                n_correct_digit += (digit_logits.argmax(-1) == yb_digit).sum().item()
+                n_correct_rot += (rot_logits.argmax(-1) == yb_rot).sum().item()
             loss.backward()
             optimizer.step()
             total_loss += loss.item() * len(xb)
-            n_correct_digit += (digit_logits.argmax(-1) == yb_digit).sum().item()
-            n_correct_rot += (rot_logits.argmax(-1) == yb_rot).sum().item()
             n_correct_full += (full_logits.argmax(-1) == yb_full).sum().item()
             n_seen += len(xb)
         scheduler.step()
@@ -281,11 +311,17 @@ def generate_mnist_rotation_embeddings(
         with torch.no_grad():
             for xb, yb_digit, yb_rot, yb_full in val_dl:
                 xb, yb_digit, yb_rot, yb_full = xb.to(device), yb_digit.to(device), yb_rot.to(device), yb_full.to(device)
-                digit_logits, rot_logits, full_logits = model(xb)
-                pred_digit = digit_logits.argmax(-1)
-                pred_full = full_logits.argmax(-1)
+                if only_full_class_head:
+                    full_logits = model(xb)
+                    pred_full = full_logits.argmax(-1)
+                    pred_digit = pred_full // n_rots           # derived, not directly predicted
+                    val_correct_rot += (pred_full % n_rots == yb_rot).sum().item()
+                else:
+                    digit_logits, rot_logits, full_logits = model(xb)
+                    pred_digit = digit_logits.argmax(-1)
+                    pred_full = full_logits.argmax(-1)
+                    val_correct_rot += (rot_logits.argmax(-1) == yb_rot).sum().item()
                 val_correct_digit += (pred_digit == yb_digit).sum().item()
-                val_correct_rot += (rot_logits.argmax(-1) == yb_rot).sum().item()
                 val_correct_full += (pred_full == yb_full).sum().item()
                 val_seen += len(xb)
                 val_digit_preds.append(pred_digit.cpu())
@@ -330,7 +366,7 @@ def generate_mnist_rotation_embeddings(
     # Only meaningful when full_class_weight > 0 (the head was actually trained).
     # This is the direct "how well does the network separate all N clusters"
     # metric you actually asked for, as opposed to the digit-only view above.
-    if full_class_weight > 0 and val_full_preds:
+    if (full_class_weight > 0 or only_full_class_head) and val_full_preds:
         val_full_preds = torch.cat(val_full_preds).numpy()
         val_full_true = torch.cat(val_full_true).numpy()
         n_classes = n_digits * n_rots
@@ -780,6 +816,11 @@ def main():
                          "Weight on a THIRD head trained directly on the full joint (digit, rotation) class -- "
                          "i.e. each cluster as its own distinct target, not just digit/rotation separately. "
                          "Default 1.0 (on). Set to 0 to train with only the digit + rotation marginal heads.")
+    parser.add_argument("--only-full-class-head", action="store_true", help="[supervised only]. "
+                         "Removes the separate digit and rotation heads entirely -- trains ONLY the combined "
+                         "full-class head (one label per (digit,rotation) combination). --rotation-aux-weight "
+                         "and --full-class-weight are ignored in this mode. Digit/rotation accuracy are still "
+                         "reported, derived post-hoc by decoding the predicted full class.")
     parser.add_argument("--ae-epochs", type=int, default=15, help="[unsupervised only] autoencoder training epochs")
     parser.add_argument("--ae-lr", type=float, default=1e-3, help="[unsupervised only]")
     parser.add_argument("--ae-weight-decay", type=float, default=1e-5, help="[unsupervised only]")
@@ -853,6 +894,7 @@ def main():
             val_fraction=args.cnn_val_fraction,
             rotation_aux_weight=args.rotation_aux_weight,
             full_class_weight=args.full_class_weight,
+            only_full_class_head=args.only_full_class_head,
             l2_normalize_embed=not args.no_l2_normalize,
         )
 
@@ -880,6 +922,8 @@ def main():
             "cnn_epochs": args.cnn_epochs,
             "data_source": args.data_source,
             "rotation_aux_weight": args.rotation_aux_weight,
+            "full_class_weight": args.full_class_weight,
+            "only_full_class_head": args.only_full_class_head,
             "seed": args.seed,
         },
     )
