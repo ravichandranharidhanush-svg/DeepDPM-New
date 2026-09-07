@@ -81,6 +81,7 @@ def generate_mnist_rotation_embeddings(
     cnn_dropout=0.3,
     val_fraction=0.15,
     rotation_aux_weight=0.3,
+    full_class_weight=1.0,
     l2_normalize_embed=True,
     device=None,
 ):
@@ -117,6 +118,18 @@ def generate_mnist_rotation_embeddings(
     0.3 is a reasonable starting point; raise it if rotation structure
     still isn't showing up in the resulting embedding, lower it if digit
     separation degrades too much.
+
+    full_class_weight: adds a THIRD head trained directly on the full
+    joint (digit, rotation) class label -- i.e. each of the n_digits *
+    n_rotations combinations as its own distinct training target, rather
+    than only supervising digit identity and rotation angle separately as
+    two marginal signals. This is a more direct way to push the embedding
+    to separate every individual cluster, since the digit+rotation heads
+    only combine into cluster-level separation indirectly (as a product of
+    two marginal objectives), whereas this head's loss directly penalizes
+    any confusion between two specific (digit, rotation) combinations.
+    Default 1.0 (on). Set to 0 to disable and train with only the digit +
+    rotation marginal heads (the original behavior).
 
     Returns:
         codes: (N, embed_dim) float32
@@ -190,14 +203,15 @@ def generate_mnist_rotation_embeddings(
     rot_idx = np.concatenate(rot_idx_list)
     digit_idx_t = torch.from_numpy(digit_idx)
     rot_idx_t = torch.from_numpy(rot_idx)
+    full_class_t = torch.from_numpy(labels)   # the joint (digit, rotation) class id -- one label per cluster
 
     n = len(all_images)
     perm = rng.permutation(n)
     n_val = int(n * val_fraction)
     val_idx, train_idx = perm[:n_val], perm[n_val:]
 
-    train_ds = TensorDataset(all_images[train_idx], digit_idx_t[train_idx], rot_idx_t[train_idx])
-    val_ds = TensorDataset(all_images[val_idx], digit_idx_t[val_idx], rot_idx_t[val_idx])
+    train_ds = TensorDataset(all_images[train_idx], digit_idx_t[train_idx], rot_idx_t[train_idx], full_class_t[train_idx])
+    val_ds = TensorDataset(all_images[val_idx], digit_idx_t[val_idx], rot_idx_t[val_idx], full_class_t[val_idx])
     train_dl = DataLoader(train_ds, batch_size=cnn_batch_size, shuffle=True)
     val_dl = DataLoader(val_ds, batch_size=cnn_batch_size, shuffle=False)
 
@@ -216,6 +230,7 @@ def generate_mnist_rotation_embeddings(
             self.embed_bn = nn.BatchNorm1d(embed_dim)
             self.fc_digit = nn.Linear(embed_dim, n_digits)
             self.fc_rot = nn.Linear(embed_dim, n_rots)
+            self.fc_full_class = nn.Linear(embed_dim, n_digits * n_rots)  # predicts the FULL joint class directly
 
         def embed(self, x):
             x = Fnn.max_pool2d(Fnn.relu(self.bn1(self.conv1(x))), 2)   # 28->14
@@ -228,49 +243,59 @@ def generate_mnist_rotation_embeddings(
 
         def forward(self, x):
             e = self.embed(x)
-            return self.fc_digit(e), self.fc_rot(e)
+            return self.fc_digit(e), self.fc_rot(e), self.fc_full_class(e)
 
     model = DigitRotCNN(embed_dim, n_digits, n_rots, dropout=cnn_dropout).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=cnn_lr, weight_decay=cnn_weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=cnn_epochs)
 
     print(f"Training CNN ({cnn_epochs} epochs, embed_dim={embed_dim}, "
-          f"rotation_aux_weight={rotation_aux_weight}, l2_normalize={l2_normalize_embed}, "
-          f"dropout={cnn_dropout}, weight_decay={cnn_weight_decay})...")
+          f"rotation_aux_weight={rotation_aux_weight}, full_class_weight={full_class_weight}, "
+          f"l2_normalize={l2_normalize_embed}, dropout={cnn_dropout}, weight_decay={cnn_weight_decay})...")
     for epoch in range(cnn_epochs):
         model.train()
-        total_loss, n_correct_digit, n_correct_rot, n_seen = 0.0, 0, 0, 0
-        for xb, yb_digit, yb_rot in train_dl:
-            xb, yb_digit, yb_rot = xb.to(device), yb_digit.to(device), yb_rot.to(device)
+        total_loss, n_correct_digit, n_correct_rot, n_correct_full, n_seen = 0.0, 0, 0, 0, 0
+        for xb, yb_digit, yb_rot, yb_full in train_dl:
+            xb, yb_digit, yb_rot, yb_full = xb.to(device), yb_digit.to(device), yb_rot.to(device), yb_full.to(device)
             optimizer.zero_grad()
-            digit_logits, rot_logits = model(xb)
+            digit_logits, rot_logits, full_logits = model(xb)
             digit_loss = Fnn.cross_entropy(digit_logits, yb_digit)
             rot_loss = Fnn.cross_entropy(rot_logits, yb_rot)
             loss = digit_loss + rotation_aux_weight * rot_loss
+            if full_class_weight > 0:
+                full_loss = Fnn.cross_entropy(full_logits, yb_full)
+                loss = loss + full_class_weight * full_loss
             loss.backward()
             optimizer.step()
             total_loss += loss.item() * len(xb)
             n_correct_digit += (digit_logits.argmax(-1) == yb_digit).sum().item()
             n_correct_rot += (rot_logits.argmax(-1) == yb_rot).sum().item()
+            n_correct_full += (full_logits.argmax(-1) == yb_full).sum().item()
             n_seen += len(xb)
         scheduler.step()
 
         model.eval()
-        val_correct_digit, val_correct_rot, val_seen = 0, 0, 0
+        val_correct_digit, val_correct_rot, val_correct_full, val_seen = 0, 0, 0, 0
         val_digit_preds, val_digit_true = [], []
+        val_full_preds, val_full_true = [], []
         with torch.no_grad():
-            for xb, yb_digit, yb_rot in val_dl:
-                xb, yb_digit, yb_rot = xb.to(device), yb_digit.to(device), yb_rot.to(device)
-                digit_logits, rot_logits = model(xb)
+            for xb, yb_digit, yb_rot, yb_full in val_dl:
+                xb, yb_digit, yb_rot, yb_full = xb.to(device), yb_digit.to(device), yb_rot.to(device), yb_full.to(device)
+                digit_logits, rot_logits, full_logits = model(xb)
                 pred_digit = digit_logits.argmax(-1)
+                pred_full = full_logits.argmax(-1)
                 val_correct_digit += (pred_digit == yb_digit).sum().item()
                 val_correct_rot += (rot_logits.argmax(-1) == yb_rot).sum().item()
+                val_correct_full += (pred_full == yb_full).sum().item()
                 val_seen += len(xb)
                 val_digit_preds.append(pred_digit.cpu())
                 val_digit_true.append(yb_digit.cpu())
+                val_full_preds.append(pred_full.cpu())
+                val_full_true.append(yb_full.cpu())
         print(f"  epoch {epoch+1}/{cnn_epochs}: train_loss={total_loss/n_seen:.4f} "
               f"val_digit_acc={(val_correct_digit/val_seen if val_seen else float('nan')):.3f} "
-              f"val_rotation_acc={(val_correct_rot/val_seen if val_seen else float('nan')):.3f}")
+              f"val_rotation_acc={(val_correct_rot/val_seen if val_seen else float('nan')):.3f} "
+              f"val_full_class_acc={(val_correct_full/val_seen if val_seen else float('nan')):.3f}")
 
     # ── Per-digit accuracy + confusion matrix on the FINAL epoch's val predictions ──
     # This shows which SPECIFIC digit pairs are the bottleneck (e.g. 1 vs 7,
@@ -301,6 +326,36 @@ def generate_mnist_rotation_embeddings(
         except Exception as e:
             print(f"  (confusion matrix skipped: {e})\n")
 
+    # ── Full-class (every digit x rotation combination) accuracy + confusion ──
+    # Only meaningful when full_class_weight > 0 (the head was actually trained).
+    # This is the direct "how well does the network separate all N clusters"
+    # metric you actually asked for, as opposed to the digit-only view above.
+    if full_class_weight > 0 and val_full_preds:
+        val_full_preds = torch.cat(val_full_preds).numpy()
+        val_full_true = torch.cat(val_full_true).numpy()
+        n_classes = n_digits * n_rots
+        print(f"Per-cluster (full class) validation accuracy (final epoch):")
+        for ci, name in enumerate(class_names):
+            mask = val_full_true == ci
+            if mask.sum() > 0:
+                acc = (val_full_preds[mask] == ci).mean()
+                print(f"  cluster {name}: {acc:.3f} ({mask.sum()} val samples)")
+
+        try:
+            from sklearn.metrics import confusion_matrix
+            cm_full = confusion_matrix(val_full_true, val_full_preds, labels=list(range(n_classes)))
+            print(f"\nFull-class confusion matrix (rows=true, cols=predicted, order={class_names}):")
+            header = "          " + "".join(f"{n:>6}" for n in class_names)
+            print(header)
+            for ci, name in enumerate(class_names):
+                row = "".join(f"{cm_full[ci, cj]:>6}" for cj in range(n_classes))
+                print(f"  {name:>6}: {row}")
+            print("  (off-diagonal entries show which SPECIFIC clusters -- digit+rotation "
+                  "combos -- are confused with each other, e.g. would reveal a 6@180 <-> 9@0 "
+                  "confusion directly if it exists)\n")
+        except Exception as e:
+            print(f"  (full-class confusion matrix skipped: {e})\n")
+
     model.eval()
     with torch.no_grad():
         codes = model.embed(all_images.to(device)).cpu().numpy().astype(np.float32)
@@ -315,6 +370,232 @@ def generate_mnist_rotation_embeddings(
         print("  (rough guide: <0.15 weak, 0.15-0.4 moderate, >0.4 strong separation)\n")
     except Exception as e:
         print(f"  (silhouette check skipped: {e})\n")
+
+    out_perm = rng.permutation(len(codes))
+    return codes[out_perm], labels[out_perm], class_names, digit_idx[out_perm], rot_idx[out_perm]
+
+
+def generate_mnist_rotation_embeddings_unsupervised(
+    digits,
+    rotations,
+    samples_per_class=200,
+    embed_dim=10,
+    seed=45,
+    mnist_root="./mnist_data",
+    ae_epochs=15,
+    ae_lr=1e-3,
+    ae_weight_decay=1e-5,
+    ae_batch_size=64,
+    val_fraction=0.15,
+    l2_normalize_embed=True,
+    device=None,
+):
+    """Genuinely unsupervised alternative to generate_mnist_rotation_embeddings().
+    Trains a convolutional AUTOENCODER on the rotated images using ONLY a
+    pixel reconstruction loss -- digit identity and rotation angle are
+    NEVER used anywhere in training, only kept around afterward for
+    evaluation (silhouette scores, the diagnostic KMeans-vs-ground-truth
+    comparison below).
+
+    Why this is the right tool for "should 6@180 and 9@0 end up in the
+    same cluster": the supervised generator's digit/rotation/full-class
+    heads are all trained with a loss that explicitly PUNISHES confusing
+    any two classes -- by construction, they can never merge visually
+    similar classes, no matter how alike the pixels actually look. This
+    autoencoder has no such constraint: the embedding is shaped purely by
+    what minimizes reconstruction error, so if two (digit, rotation)
+    combinations are genuinely close in pixel space, nothing stops the
+    encoder from placing them close together too. Whatever structure
+    emerges here reflects real visual similarity, not enforced separation
+    -- this may mean digit clusters are noisier/less separated than the
+    supervised version, and that's expected, not a bug.
+
+    Returns the same 5-tuple as generate_mnist_rotation_embeddings(), so
+    every downstream pairing function works unchanged on top of it.
+    """
+    try:
+        import torchvision
+        import torchvision.transforms.functional as TF
+    except ImportError as e:
+        raise ImportError("This script requires torchvision: pip install torchvision") from e
+    import torch.nn as nn
+    import torch.nn.functional as Fnn
+    from torch.utils.data import TensorDataset, DataLoader
+
+    torch.manual_seed(seed)
+    rng = np.random.default_rng(seed)
+    device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+
+    print(f"Loading MNIST (root={mnist_root}, download if needed)...")
+    dataset = torchvision.datasets.MNIST(root=mnist_root, train=True, download=True)
+
+    n_digits = len(digits)
+    n_rots = len(rotations)
+
+    if isinstance(samples_per_class, (list, tuple)):
+        if len(samples_per_class) != n_digits:
+            raise ValueError(f"samples_per_class list has {len(samples_per_class)} entries "
+                              f"but there are {n_digits} digits -- must match, or pass a single int.")
+        samples_per_digit = list(samples_per_class)
+    else:
+        samples_per_digit = [samples_per_class] * n_digits
+    print(f"Samples per digit: {dict(zip(digits, samples_per_digit))}")
+
+    all_images = []
+    labels = []
+    digit_idx_list = []
+    rot_idx_list = []
+    class_names = []
+
+    class_idx = 0
+    for di, digit in enumerate(digits):
+        n_samples_this_digit = samples_per_digit[di]
+        pool_mask = dataset.targets == digit
+        pool = dataset.data[pool_mask]
+        if len(pool) < n_samples_this_digit:
+            raise ValueError(f"Not enough MNIST images for digit {digit}: requested "
+                              f"{n_samples_this_digit}, only {len(pool)} available.")
+        chosen = rng.choice(len(pool), size=n_samples_this_digit, replace=False)
+        base_imgs = pool[chosen].float()
+
+        for ri, rot in enumerate(rotations):
+            rotated = torch.stack([
+                TF.rotate(img.unsqueeze(0), angle=float(rot)).squeeze(0)
+                for img in base_imgs
+            ])
+            all_images.append((rotated / 255.0).unsqueeze(1))
+            labels.append(np.full(n_samples_this_digit, class_idx, dtype=np.int64))
+            digit_idx_list.append(np.full(n_samples_this_digit, di, dtype=np.int64))
+            rot_idx_list.append(np.full(n_samples_this_digit, ri, dtype=np.int64))
+            class_names.append(f"{digit}_{ri}")
+            class_idx += 1
+
+    all_images = torch.cat(all_images, dim=0)
+    labels = np.concatenate(labels)
+    digit_idx = np.concatenate(digit_idx_list)
+    rot_idx = np.concatenate(rot_idx_list)
+
+    n = len(all_images)
+    perm = rng.permutation(n)
+    n_val = int(n * val_fraction)
+    val_idx, train_idx = perm[:n_val], perm[n_val:]
+
+    # NOTE: only images go into the dataset -- no labels at all. This is
+    # what makes the training loop below genuinely unsupervised.
+    train_ds = TensorDataset(all_images[train_idx])
+    val_ds = TensorDataset(all_images[val_idx])
+    train_dl = DataLoader(train_ds, batch_size=ae_batch_size, shuffle=True)
+    val_dl = DataLoader(val_ds, batch_size=ae_batch_size, shuffle=False)
+
+    class ConvAutoencoder(nn.Module):
+        def __init__(self, embed_dim):
+            super().__init__()
+            # encoder -- mirrors the supervised model's conv trunk
+            self.enc_conv1 = nn.Conv2d(1, 16, 3, padding=1)
+            self.enc_bn1 = nn.BatchNorm2d(16)
+            self.enc_conv2 = nn.Conv2d(16, 32, 3, padding=1)
+            self.enc_bn2 = nn.BatchNorm2d(32)
+            self.enc_conv3 = nn.Conv2d(32, 64, 3, padding=1)
+            self.enc_bn3 = nn.BatchNorm2d(64)
+            self.fc_embed = nn.Linear(64 * 7 * 7, embed_dim)
+            self.embed_bn = nn.BatchNorm1d(embed_dim)
+
+            # decoder -- mirrors the encoder in reverse
+            self.fc_decode = nn.Linear(embed_dim, 64 * 7 * 7)
+            self.dec_conv1 = nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1)  # 7->14
+            self.dec_bn1 = nn.BatchNorm2d(32)
+            self.dec_conv2 = nn.ConvTranspose2d(32, 16, 4, stride=2, padding=1)  # 14->28
+            self.dec_bn2 = nn.BatchNorm2d(16)
+            self.dec_conv3 = nn.Conv2d(16, 1, 3, padding=1)
+
+        def encode(self, x):
+            x = Fnn.max_pool2d(Fnn.relu(self.enc_bn1(self.enc_conv1(x))), 2)  # 28->14
+            x = Fnn.max_pool2d(Fnn.relu(self.enc_bn2(self.enc_conv2(x))), 2)  # 14->7
+            x = Fnn.relu(self.enc_bn3(self.enc_conv3(x)))                    # 7->7
+            x = x.flatten(1)                                                 # (B, 64*7*7)
+            e = self.embed_bn(self.fc_embed(x))
+            return Fnn.normalize(e, dim=1) if l2_normalize_embed else e
+
+        def decode(self, e):
+            x = self.fc_decode(e).view(-1, 64, 7, 7)
+            x = Fnn.relu(self.dec_bn1(self.dec_conv1(x)))   # 7->14
+            x = Fnn.relu(self.dec_bn2(self.dec_conv2(x)))   # 14->28
+            x = torch.sigmoid(self.dec_conv3(x))            # pixel values in [0,1]
+            return x
+
+        def forward(self, x):
+            e = self.encode(x)
+            return self.decode(e), e
+
+    model = ConvAutoencoder(embed_dim).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=ae_lr, weight_decay=ae_weight_decay)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=ae_epochs)
+
+    print(f"Training convolutional autoencoder ({ae_epochs} epochs, embed_dim={embed_dim}, "
+          f"l2_normalize={l2_normalize_embed}) -- NO digit/rotation labels used in training...")
+    for epoch in range(ae_epochs):
+        model.train()
+        total_loss, n_seen = 0.0, 0
+        for (xb,) in train_dl:
+            xb = xb.to(device)
+            optimizer.zero_grad()
+            recon, _ = model(xb)
+            loss = Fnn.mse_loss(recon, xb)
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.item() * len(xb)
+            n_seen += len(xb)
+        scheduler.step()
+
+        model.eval()
+        val_loss, val_seen = 0.0, 0
+        with torch.no_grad():
+            for (xb,) in val_dl:
+                xb = xb.to(device)
+                recon, _ = model(xb)
+                val_loss += Fnn.mse_loss(recon, xb).item() * len(xb)
+                val_seen += len(xb)
+        print(f"  epoch {epoch+1}/{ae_epochs}: train_recon_loss={total_loss/n_seen:.5f} "
+              f"val_recon_loss={(val_loss/val_seen if val_seen else float('nan')):.5f}")
+
+    model.eval()
+    with torch.no_grad():
+        codes = model.encode(all_images.to(device)).cpu().numpy().astype(np.float32)
+
+    # ── Diagnostic only (NOT used to shape the embedding): does unsupervised
+    # KMeans on this embedding recover digit/rotation/full-class structure,
+    # and specifically -- does it merge any visually-ambiguous combinations
+    # (e.g. would a 6@180 and a 9@0 land in the same KMeans cluster)? ──
+    try:
+        from sklearn.cluster import KMeans
+        from sklearn.metrics import silhouette_score, confusion_matrix
+        n_classes = n_digits * n_rots
+
+        print("\nEmbedding quality check (on the full generated set; NO labels were used in training):")
+        print(f"  digit silhouette:    {silhouette_score(codes, digit_idx):.3f}")
+        print(f"  rotation silhouette: {silhouette_score(codes, rot_idx):.3f}")
+        print(f"  full-class ({n_classes}-way) silhouette: {silhouette_score(codes, labels):.3f}")
+        print("  (rough guide: <0.15 weak, 0.15-0.4 moderate, >0.4 strong separation)")
+
+        km = KMeans(n_clusters=n_classes, n_init=10, random_state=seed)
+        km_labels = km.fit_predict(codes)
+        cm = confusion_matrix(labels, km_labels, labels=list(range(n_classes)))
+        # for each true class, which KMeans cluster does it mostly land in
+        print(f"\nUnsupervised KMeans (k={n_classes}) vs. ground-truth class -- "
+              f"dominant KMeans cluster per true class (diagnostic only, not used in training):")
+        for ci, name in enumerate(class_names):
+            row = cm[ci]
+            if row.sum() > 0:
+                dominant = row.argmax()
+                purity = row[dominant] / row.sum()
+                # if two ground-truth classes share the same dominant KMeans
+                # cluster, that's evidence the embedding genuinely merged them
+                print(f"  true class {name}: {purity:.2f} of its points fall in KMeans cluster {dominant}")
+        print("  (if two different true classes list the SAME dominant KMeans cluster, "
+              "the unsupervised embedding is genuinely grouping them together -- e.g. "
+              "this is where you'd see a real 6@180 <-> 9@0 merge if it exists in the pixels)\n")
+    except Exception as e:
+        print(f"  (embedding quality / KMeans diagnostic skipped: {e})\n")
 
     out_perm = rng.permutation(len(codes))
     return codes[out_perm], labels[out_perm], class_names, digit_idx[out_perm], rot_idx[out_perm]
@@ -464,6 +745,14 @@ def main():
                          help="Comma-separated 'a-b' rotation VALUE pairs (degrees), e.g. "
                               "'0-90,90-180,180-270,270-0'. The set of rotations actually generated "
                               "is inferred as the sorted unique values appearing here.")
+    parser.add_argument("--data-source", type=str, default="supervised", choices=["supervised", "unsupervised"],
+                         help="'supervised' (default): trains digit + rotation + full-class heads -- guarantees "
+                              "cluster separation by construction, cannot merge visually-similar classes. "
+                              "'unsupervised': trains a convolutional AUTOENCODER with reconstruction loss only, "
+                              "no labels used in training at all -- whatever structure emerges reflects real "
+                              "pixel-level visual similarity, so genuinely ambiguous combinations (e.g. a rotated "
+                              "6 that looks like a 9) CAN end up close together or even merged, unlike the "
+                              "supervised path. Use this to test whether visual ambiguity is real vs. imposed.")
     parser.add_argument("--samples-per-class", type=int, nargs="+", default=[1000],
                          help="Images per digit (each expanded across every rotation). Pass a single value to use "
                               "the same count for every digit (e.g. --samples-per-class 500), or one value per "
@@ -475,18 +764,27 @@ def main():
                               "count for every digit (e.g. --pairs-per-combo 20), or one value per digit in the "
                               "SAME ORDER as --digits (e.g. --digits 3 4 7 --pairs-per-combo 50 10 5 draws 50 pairs "
                               "per combo for digit 3, 10 for digit 4, 5 for digit 7).")
-    parser.add_argument("--cnn-epochs", type=int, default=15)
-    parser.add_argument("--cnn-lr", type=float, default=1e-3)
-    parser.add_argument("--cnn-weight-decay", type=float, default=1e-4)
-    parser.add_argument("--cnn-batch-size", type=int, default=64)
-    parser.add_argument("--cnn-dropout", type=float, default=0.3)
-    parser.add_argument("--cnn-val-fraction", type=float, default=0.15)
+    parser.add_argument("--cnn-epochs", type=int, default=15, help="[supervised only]")
+    parser.add_argument("--cnn-lr", type=float, default=1e-3, help="[supervised only]")
+    parser.add_argument("--cnn-weight-decay", type=float, default=1e-4, help="[supervised only]")
+    parser.add_argument("--cnn-batch-size", type=int, default=64, help="[supervised only]")
+    parser.add_argument("--cnn-dropout", type=float, default=0.3, help="[supervised only]")
+    parser.add_argument("--cnn-val-fraction", type=float, default=0.15, help="[supervised only]")
     parser.add_argument("--no-l2-normalize", action="store_true",
                          help="Disable L2-normalizing the final embedding (normalized by default -- "
                               "keeps distances meaningful for downstream clustering).")
-    parser.add_argument("--rotation-aux-weight", type=float, default=0.3,
-                         help="Weight on the auxiliary rotation-prediction head. 0 = pure digit classifier "
-                              "(becomes rotation-invariant, erases rotation structure). Default 0.3.")
+    parser.add_argument("--rotation-aux-weight", type=float, default=0.3, help="[supervised only]. "
+                         "Weight on the auxiliary rotation-prediction head. 0 = pure digit classifier "
+                         "(becomes rotation-invariant, erases rotation structure). Default 0.3.")
+    parser.add_argument("--full-class-weight", type=float, default=1.0, help="[supervised only]. "
+                         "Weight on a THIRD head trained directly on the full joint (digit, rotation) class -- "
+                         "i.e. each cluster as its own distinct target, not just digit/rotation separately. "
+                         "Default 1.0 (on). Set to 0 to train with only the digit + rotation marginal heads.")
+    parser.add_argument("--ae-epochs", type=int, default=15, help="[unsupervised only] autoencoder training epochs")
+    parser.add_argument("--ae-lr", type=float, default=1e-3, help="[unsupervised only]")
+    parser.add_argument("--ae-weight-decay", type=float, default=1e-5, help="[unsupervised only]")
+    parser.add_argument("--ae-batch-size", type=int, default=64, help="[unsupervised only]")
+    parser.add_argument("--ae-val-fraction", type=float, default=0.15, help="[unsupervised only]")
     parser.add_argument("--mnist-root", type=str, default="./mnist_data")
     parser.add_argument("--seed", type=int, default=45)
     parser.add_argument("--out-dir", type=str, required=True)
@@ -524,22 +822,39 @@ def main():
     rotations = sorted(set(r for pair in rotation_pairs for r in pair))
     print(f"Inferred rotations from --rotation-pairs: {rotations}")
 
-    codes, labels, class_names, digit_idx, rot_idx = generate_mnist_rotation_embeddings(
-        digits=args.digits,
-        rotations=rotations,
-        samples_per_class=samples_per_class,
-        embed_dim=args.embed_dim,
-        seed=args.seed,
-        mnist_root=args.mnist_root,
-        cnn_epochs=args.cnn_epochs,
-        cnn_lr=args.cnn_lr,
-        cnn_weight_decay=args.cnn_weight_decay,
-        cnn_batch_size=args.cnn_batch_size,
-        cnn_dropout=args.cnn_dropout,
-        val_fraction=args.cnn_val_fraction,
-        rotation_aux_weight=args.rotation_aux_weight,
-        l2_normalize_embed=not args.no_l2_normalize,
-    )
+    if args.data_source == "unsupervised":
+        codes, labels, class_names, digit_idx, rot_idx = generate_mnist_rotation_embeddings_unsupervised(
+            digits=args.digits,
+            rotations=rotations,
+            samples_per_class=samples_per_class,
+            embed_dim=args.embed_dim,
+            seed=args.seed,
+            mnist_root=args.mnist_root,
+            ae_epochs=args.ae_epochs,
+            ae_lr=args.ae_lr,
+            ae_weight_decay=args.ae_weight_decay,
+            ae_batch_size=args.ae_batch_size,
+            val_fraction=args.ae_val_fraction,
+            l2_normalize_embed=not args.no_l2_normalize,
+        )
+    else:
+        codes, labels, class_names, digit_idx, rot_idx = generate_mnist_rotation_embeddings(
+            digits=args.digits,
+            rotations=rotations,
+            samples_per_class=samples_per_class,
+            embed_dim=args.embed_dim,
+            seed=args.seed,
+            mnist_root=args.mnist_root,
+            cnn_epochs=args.cnn_epochs,
+            cnn_lr=args.cnn_lr,
+            cnn_weight_decay=args.cnn_weight_decay,
+            cnn_batch_size=args.cnn_batch_size,
+            cnn_dropout=args.cnn_dropout,
+            val_fraction=args.cnn_val_fraction,
+            rotation_aux_weight=args.rotation_aux_weight,
+            full_class_weight=args.full_class_weight,
+            l2_normalize_embed=not args.no_l2_normalize,
+        )
 
     # full unpaired export first -- always, regardless of pairing subsetting
     save_unpaired_dataset(args.out_dir, codes, labels, split="train")
@@ -563,6 +878,7 @@ def main():
             "embed_dim": args.embed_dim,
             "pairs_per_combo": pairs_per_combo,
             "cnn_epochs": args.cnn_epochs,
+            "data_source": args.data_source,
             "rotation_aux_weight": args.rotation_aux_weight,
             "seed": args.seed,
         },
