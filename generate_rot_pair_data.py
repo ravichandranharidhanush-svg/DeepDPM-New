@@ -424,14 +424,26 @@ def generate_mnist_rotation_embeddings_unsupervised(
     ae_batch_size=64,
     val_fraction=0.15,
     l2_normalize_embed=True,
+    aug_consistency_weight=0.0,
     device=None,
 ):
     """Genuinely unsupervised alternative to generate_mnist_rotation_embeddings().
     Trains a convolutional AUTOENCODER on the rotated images using ONLY a
     pixel reconstruction loss -- digit identity and rotation angle are
-    NEVER used anywhere in training, only kept around afterward for
-    evaluation (silhouette scores, the diagnostic KMeans-vs-ground-truth
-    comparison below).
+    NEVER used ANYWHERE in training. No labels of any kind, no pairwise
+    term, nothing -- the dataset fed to the training loop contains only
+    images (see the TensorDataset below, which is constructed from
+    all_images alone). labels/digit_idx/rot_idx are computed and returned
+    purely for POST-TRAINING evaluation (silhouette scores, the diagnostic
+    KMeans-vs-ground-truth comparison below) -- never passed into the
+    model, the optimizer, or the loss function during training.
+
+    By design, pairwise/contrastive supervision does NOT live here --
+    that belongs in DeepDPM's --contrastive_weight /
+    --subcluster_contrastive_weight, operating on top of this embedding.
+    Keeping the two separate means any effect the pairwise loss has during
+    DeepDPM training is real, not confounded by the embedding already
+    having been shaped by label information.
 
     Why this is the right tool for "should 6@180 and 9@0 end up in the
     same cluster": the supervised generator's digit/rotation/full-class
@@ -445,6 +457,23 @@ def generate_mnist_rotation_embeddings_unsupervised(
     emerges here reflects real visual similarity, not enforced separation
     -- this may mean digit clusters are noisier/less separated than the
     supervised version, and that's expected, not a bug.
+
+    aug_consistency_weight: pure reconstruction is a WEAK objective for
+    clustering -- an autoencoder with enough capacity can just learn to
+    copy pixels, with no pressure to organize similar inputs near each
+    other. Setting this > 0 adds a self-supervised consistency term:
+    each image gets two independent augmented views (small translation,
+    brightness/contrast jitter, mild Gaussian noise -- deliberately NOT
+    rotation, since that's the axis you want preserved as real structure,
+    not collapsed via invariance), and the encoder is trained so both
+    views land close together in embedding space (MSE between their
+    embeddings). This still never touches any digit/rotation label -- it
+    only uses the fact that two augmented copies came from the same
+    source image. Empirically this tends to produce much more
+    clustering-friendly embeddings than reconstruction alone, since it
+    directly rewards grouping similar content rather than only pixel
+    fidelity. 0 (default) = pure reconstruction, unchanged from before;
+    try 0.5-1.0 if silhouette scores are weak.
 
     Returns the same 5-tuple as generate_mnist_rotation_embeddings(), so
     every downstream pairing function works unchanged on top of it.
@@ -516,8 +545,8 @@ def generate_mnist_rotation_embeddings_unsupervised(
     n_val = int(n * val_fraction)
     val_idx, train_idx = perm[:n_val], perm[n_val:]
 
-    # NOTE: only images go into the dataset -- no labels at all. This is
-    # what makes the training loop below genuinely unsupervised.
+    # NOTE: only images go into the dataset -- no labels of any kind. This
+    # is what makes the training loop below genuinely unsupervised.
     train_ds = TensorDataset(all_images[train_idx])
     val_ds = TensorDataset(all_images[val_idx])
     train_dl = DataLoader(train_ds, batch_size=ae_batch_size, shuffle=True)
@@ -563,23 +592,72 @@ def generate_mnist_rotation_embeddings_unsupervised(
             e = self.encode(x)
             return self.decode(e), e
 
+    def augment_batch(xb, rng_gen):
+        """Small, benign augmentations for the self-supervised consistency
+        term -- deliberately NOT rotation, since rotation is real structure
+        we want the embedding to preserve, not collapse via invariance.
+        Operates on a batch of (B, 1, 28, 28) tensors in [0, 1].
+        """
+        b = xb.shape[0]
+        out = xb.clone()
+
+        # small random translation (+/- 2 px), via roll + zero-out wrapped edges
+        shift_x = torch.randint(-2, 3, (1,), generator=rng_gen).item()
+        shift_y = torch.randint(-2, 3, (1,), generator=rng_gen).item()
+        if shift_x != 0:
+            out = torch.roll(out, shifts=shift_x, dims=3)
+            if shift_x > 0:
+                out[:, :, :, :shift_x] = 0
+            else:
+                out[:, :, :, shift_x:] = 0
+        if shift_y != 0:
+            out = torch.roll(out, shifts=shift_y, dims=2)
+            if shift_y > 0:
+                out[:, :, :shift_y, :] = 0
+            else:
+                out[:, :, shift_y:, :] = 0
+
+        # random brightness/contrast jitter, per-sample
+        brightness = 1.0 + (torch.rand(b, 1, 1, 1, generator=rng_gen) - 0.5) * 0.4  # [0.8, 1.2]
+        contrast = 1.0 + (torch.rand(b, 1, 1, 1, generator=rng_gen) - 0.5) * 0.4
+        mean = out.mean(dim=[2, 3], keepdim=True)
+        out = (out - mean) * contrast.to(out.device) + mean
+        out = out * brightness.to(out.device)
+
+        # mild Gaussian noise
+        out = out + torch.randn(out.shape, generator=rng_gen).to(out.device) * 0.05
+
+        return out.clamp(0.0, 1.0)
+
     model = ConvAutoencoder(embed_dim).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=ae_lr, weight_decay=ae_weight_decay)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=ae_epochs)
+    aug_rng = torch.Generator().manual_seed(seed)
 
     print(f"Training convolutional autoencoder ({ae_epochs} epochs, embed_dim={embed_dim}, "
-          f"l2_normalize={l2_normalize_embed}) -- NO digit/rotation labels used in training...")
+          f"l2_normalize={l2_normalize_embed}, aug_consistency_weight={aug_consistency_weight}) "
+          f"-- NO labels of any kind used in training...")
     for epoch in range(ae_epochs):
         model.train()
-        total_loss, n_seen = 0.0, 0
+        total_recon_loss, total_consistency_loss, n_seen = 0.0, 0.0, 0
         for (xb,) in train_dl:
             xb = xb.to(device)
             optimizer.zero_grad()
-            recon, _ = model(xb)
+            recon, e = model(xb)
             loss = Fnn.mse_loss(recon, xb)
+
+            if aug_consistency_weight > 0:
+                view1 = augment_batch(xb.cpu(), aug_rng).to(device)
+                view2 = augment_batch(xb.cpu(), aug_rng).to(device)
+                _, e1 = model(view1)
+                _, e2 = model(view2)
+                consistency_loss = Fnn.mse_loss(e1, e2)
+                loss = loss + aug_consistency_weight * consistency_loss
+                total_consistency_loss += consistency_loss.item() * len(xb)
+
             loss.backward()
             optimizer.step()
-            total_loss += loss.item() * len(xb)
+            total_recon_loss += Fnn.mse_loss(recon, xb).item() * len(xb)
             n_seen += len(xb)
         scheduler.step()
 
@@ -591,8 +669,12 @@ def generate_mnist_rotation_embeddings_unsupervised(
                 recon, _ = model(xb)
                 val_loss += Fnn.mse_loss(recon, xb).item() * len(xb)
                 val_seen += len(xb)
-        print(f"  epoch {epoch+1}/{ae_epochs}: train_recon_loss={total_loss/n_seen:.5f} "
-              f"val_recon_loss={(val_loss/val_seen if val_seen else float('nan')):.5f}")
+
+        log_line = (f"  epoch {epoch+1}/{ae_epochs}: train_recon_loss={total_recon_loss/n_seen:.5f} "
+                    f"val_recon_loss={(val_loss/val_seen if val_seen else float('nan')):.5f}")
+        if aug_consistency_weight > 0:
+            log_line += f" consistency_loss={total_consistency_loss/n_seen:.5f}"
+        print(log_line)
 
     model.eval()
     with torch.no_grad():
@@ -724,6 +806,73 @@ def build_custom_rotation_pairs(codes, digit_idx, rot_idx, labels, digits, rotat
     return paired_codes[perm], paired_labels[perm], pair_labels[perm], partner_labels[perm]
 
 
+def build_cross_digit_pairs(codes, digit_idx, labels, digits, digit_pairs, pairs_per_combo=50, seed=45):
+    """Builds NEGATIVE (z=0) pairs between specific pairs of DIGITS,
+    ignoring rotation entirely (anchor and partner can be at any rotation).
+
+    This exists specifically to give DeepDPM's --contrastive_weight a
+    signal for digit-level confusion that an UNSUPERVISED embedding can
+    have but a supervised one cannot (supervised heads eliminate any
+    cross-digit confusion by construction, so cross-digit pairs would be
+    redundant there -- but for an unsupervised autoencoder, two digits
+    that are genuinely visually similar (e.g. 3 and 5) may end up close
+    or overlapping in the embedding, and nothing in reconstruction loss
+    alone tells the encoder they should be different. This function
+    builds the training signal to test whether pairwise supervision in
+    DeepDPM can pull them apart afterward.
+
+    Args:
+        digit_pairs: list of (digit_a, digit_b) tuples using actual digit
+            values (not indices), e.g. [(3, 5)] -- the specific digit
+            pairs you want negative supervision for.
+        pairs_per_combo: how many (anchor, partner) pairs to draw per
+            digit_pair.
+
+    Returns the same 4-tuple shape as build_custom_rotation_pairs /
+    build_custom_rotation_pairs, so it can be concatenated with rotation
+    pairs before saving.
+    """
+    rng = np.random.default_rng(seed)
+    digit_value_to_idx = {d: i for i, d in enumerate(digits)}
+
+    for da, db in digit_pairs:
+        if da not in digit_value_to_idx or db not in digit_value_to_idx:
+            raise ValueError(f"digit_pairs entry ({da}, {db}) uses a value not in --digits {digits}.")
+        if da == db:
+            raise ValueError(f"digit_pairs entry ({da}, {db}) has the same digit twice -- "
+                              f"cross-digit pairs must be between two DIFFERENT digits. "
+                              f"Use --rotation-pairs for within-digit supervision instead.")
+
+    by_digit = {}
+    for di in range(len(digits)):
+        by_digit[di] = np.where(digit_idx == di)[0]
+        if len(by_digit[di]) == 0:
+            raise ValueError(f"No points found for digit index {di}.")
+
+    paired_codes, paired_labels, pair_labels, partner_labels = [], [], [], []
+
+    for da_val, db_val in digit_pairs:
+        da, db = digit_value_to_idx[da_val], digit_value_to_idx[db_val]
+        anchor_pool = by_digit[da]
+        partner_pool = by_digit[db]
+
+        for _ in range(pairs_per_combo):
+            anchor_idx = int(rng.choice(anchor_pool))
+            partner_idx = int(rng.choice(partner_pool))
+            paired_codes.append(np.stack([codes[anchor_idx], codes[partner_idx]], axis=0))
+            paired_labels.append(labels[anchor_idx])
+            pair_labels.append(0.0)   # always a negative pair -- different digits
+            partner_labels.append(labels[partner_idx])
+
+    paired_codes = np.stack(paired_codes, axis=0).astype(np.float32)
+    paired_labels = np.array(paired_labels, dtype=np.int64)
+    pair_labels = np.array(pair_labels, dtype=np.float32)
+    partner_labels = np.array(partner_labels, dtype=np.int64)
+
+    perm = rng.permutation(len(paired_codes))
+    return paired_codes[perm], paired_labels[perm], pair_labels[perm], partner_labels[perm]
+
+
 # ---------------------------------------------------------------------------
 # Step 5: save (paired -- for --dataset custom_pair; unpaired -- for --dataset custom)
 # ---------------------------------------------------------------------------
@@ -781,6 +930,16 @@ def main():
                          help="Comma-separated 'a-b' rotation VALUE pairs (degrees), e.g. "
                               "'0-90,90-180,180-270,270-0'. The set of rotations actually generated "
                               "is inferred as the sorted unique values appearing here.")
+    parser.add_argument("--digit-pairs", type=str, default=None,
+                         help="Comma-separated 'a-b' DIGIT pairs (e.g. '3-5') to generate cross-digit NEGATIVE "
+                              "pairs for, ignoring rotation. Useful specifically for unsupervised embeddings, "
+                              "where two visually similar digits (e.g. 3 and 5) may not be separated at all -- "
+                              "supervised embeddings never need this since their heads already eliminate any "
+                              "cross-digit confusion by construction. These pairs are merged into the same "
+                              "paired dataset as --rotation-pairs, giving DeepDPM's --contrastive_weight a "
+                              "digit-separation signal alongside the rotation one. Omit to skip (default).")
+    parser.add_argument("--digit-pairs-per-combo", type=int, default=50,
+                         help="How many cross-digit pairs to draw per --digit-pairs combination. Default 50.")
     parser.add_argument("--data-source", type=str, default="supervised", choices=["supervised", "unsupervised"],
                          help="'supervised' (default): trains digit + rotation + full-class heads -- guarantees "
                               "cluster separation by construction, cannot merge visually-similar classes. "
@@ -826,6 +985,11 @@ def main():
     parser.add_argument("--ae-weight-decay", type=float, default=1e-5, help="[unsupervised only]")
     parser.add_argument("--ae-batch-size", type=int, default=64, help="[unsupervised only]")
     parser.add_argument("--ae-val-fraction", type=float, default=0.15, help="[unsupervised only]")
+    parser.add_argument("--aug-consistency-weight", type=float, default=0.0, help="[unsupervised only]. "
+                         "Self-supervised consistency term: encourages two independently-augmented views "
+                         "(small translation, brightness/contrast jitter, noise -- NOT rotation) of the same "
+                         "image to land close together in embedding space. Never uses digit/rotation labels. "
+                         "0 (default) = pure reconstruction. Try 0.5-1.0 if silhouette scores are weak.")
     parser.add_argument("--mnist-root", type=str, default="./mnist_data")
     parser.add_argument("--seed", type=int, default=45)
     parser.add_argument("--out-dir", type=str, required=True)
@@ -876,6 +1040,7 @@ def main():
             ae_weight_decay=args.ae_weight_decay,
             ae_batch_size=args.ae_batch_size,
             val_fraction=args.ae_val_fraction,
+            aug_consistency_weight=args.aug_consistency_weight,
             l2_normalize_embed=not args.no_l2_normalize,
         )
     else:
@@ -908,6 +1073,37 @@ def main():
         pairs_per_combo=pairs_per_combo,
         seed=args.seed,
     )
+
+    parsed_digit_pairs = None
+    if args.digit_pairs:
+        parsed_digit_pairs = []
+        for token in args.digit_pairs.split(","):
+            a, b = token.strip().split("-")
+            parsed_digit_pairs.append((int(a), int(b)))
+
+        cd_codes, cd_labels, cd_pair_labels, cd_partner_labels = build_cross_digit_pairs(
+            codes, digit_idx, labels,
+            digits=args.digits,
+            digit_pairs=parsed_digit_pairs,
+            pairs_per_combo=args.digit_pairs_per_combo,
+            seed=args.seed + 2,   # different seed stream than rotation pairs
+        )
+        print(f"Adding {len(cd_pair_labels)} cross-digit negative pairs for {parsed_digit_pairs} "
+              f"to the paired dataset (rotation ignored for these).")
+
+        paired_codes = np.concatenate([paired_codes, cd_codes], axis=0)
+        paired_labels = np.concatenate([paired_labels, cd_labels], axis=0)
+        pair_labels = np.concatenate([pair_labels, cd_pair_labels], axis=0)
+        partner_labels = np.concatenate([partner_labels, cd_partner_labels], axis=0)
+
+        # reshuffle the combined set so rotation-pairs and cross-digit-pairs are interleaved
+        merge_rng = np.random.default_rng(args.seed + 3)
+        merge_perm = merge_rng.permutation(len(paired_codes))
+        paired_codes = paired_codes[merge_perm]
+        paired_labels = paired_labels[merge_perm]
+        pair_labels = pair_labels[merge_perm]
+        partner_labels = partner_labels[merge_perm]
+
     save_paired_dataset(args.out_dir, paired_codes, paired_labels, pair_labels, split="train")
 
     save_metadata(
@@ -916,6 +1112,7 @@ def main():
             "digits": args.digits,
             "rotations": rotations,
             "rotation_pairs": rotation_pairs,
+            "digit_pairs": parsed_digit_pairs,
             "samples_per_class": samples_per_class,
             "embed_dim": args.embed_dim,
             "pairs_per_combo": pairs_per_combo,
