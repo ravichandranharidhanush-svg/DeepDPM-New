@@ -806,7 +806,8 @@ def build_custom_rotation_pairs(codes, digit_idx, rot_idx, labels, digits, rotat
     return paired_codes[perm], paired_labels[perm], pair_labels[perm], partner_labels[perm]
 
 
-def build_cross_digit_pairs(codes, digit_idx, labels, digits, digit_pairs, pairs_per_combo=50, seed=45):
+def build_cross_digit_pairs(codes, digit_idx, labels, digits, digit_pairs, pairs_per_combo=50, seed=45,
+                             hard_negative_mining=False):
     """Builds NEGATIVE (z=0) pairs between specific pairs of DIGITS,
     ignoring rotation entirely (anchor and partner can be at any rotation).
 
@@ -827,10 +828,23 @@ def build_cross_digit_pairs(codes, digit_idx, labels, digits, digit_pairs, pairs
             pairs you want negative supervision for.
         pairs_per_combo: how many (anchor, partner) pairs to draw per
             digit_pair.
+        hard_negative_mining: if False (default), anchor/partner are drawn
+            UNIFORMLY AT RANDOM from the two digit pools -- most such
+            pairs are already easy (far apart in embedding space) and
+            contribute little signal. If True, instead finds the
+            pairs_per_combo pairs with the SMALLEST distance in embedding
+            space across the two pools -- i.e. the specific examples the
+            feature extractor is actually confusing right now. This
+            concentrates supervision exactly where it's needed instead of
+            spreading it randomly, and still only uses the digit label you
+            already have (no new information source, just used more
+            efficiently). Requires computing a distance matrix between the
+            two digit pools (O(n_a * n_b * embed_dim)) -- fine at typical
+            per-digit sample sizes (hundreds to low thousands), but can get
+            slow at very large pools.
 
-    Returns the same 4-tuple shape as build_custom_rotation_pairs /
-    build_custom_rotation_pairs, so it can be concatenated with rotation
-    pairs before saving.
+    Returns the same 4-tuple shape as build_custom_rotation_pairs, so it
+    can be concatenated with rotation pairs before saving.
     """
     rng = np.random.default_rng(seed)
     digit_value_to_idx = {d: i for i, d in enumerate(digits)}
@@ -856,13 +870,34 @@ def build_cross_digit_pairs(codes, digit_idx, labels, digits, digit_pairs, pairs
         anchor_pool = by_digit[da]
         partner_pool = by_digit[db]
 
-        for _ in range(pairs_per_combo):
-            anchor_idx = int(rng.choice(anchor_pool))
-            partner_idx = int(rng.choice(partner_pool))
-            paired_codes.append(np.stack([codes[anchor_idx], codes[partner_idx]], axis=0))
-            paired_labels.append(labels[anchor_idx])
-            pair_labels.append(0.0)   # always a negative pair -- different digits
-            partner_labels.append(labels[partner_idx])
+        if hard_negative_mining:
+            # find the pairs_per_combo GLOBALLY closest (anchor, partner)
+            # combinations across the two pools -- the actual confusions,
+            # not random draws.
+            from scipy.spatial.distance import cdist
+            dist_matrix = cdist(codes[anchor_pool], codes[partner_pool])
+            k = min(pairs_per_combo, dist_matrix.size)
+            flat_idx = np.argpartition(dist_matrix, k - 1, axis=None)[:k]
+            rows, cols = np.unravel_index(flat_idx, dist_matrix.shape)
+            mean_dist = dist_matrix[rows, cols].mean()
+            print(f"  hard-negative mining ({digits[da]} vs {digits[db]}): "
+                  f"selected {k} closest pairs, mean embedding distance={mean_dist:.4f} "
+                  f"(vs. overall pool mean distance={dist_matrix.mean():.4f})")
+            selected_anchor = anchor_pool[rows]
+            selected_partner = partner_pool[cols]
+            for a_idx, p_idx in zip(selected_anchor, selected_partner):
+                paired_codes.append(np.stack([codes[a_idx], codes[p_idx]], axis=0))
+                paired_labels.append(labels[a_idx])
+                pair_labels.append(0.0)
+                partner_labels.append(labels[p_idx])
+        else:
+            for _ in range(pairs_per_combo):
+                anchor_idx = int(rng.choice(anchor_pool))
+                partner_idx = int(rng.choice(partner_pool))
+                paired_codes.append(np.stack([codes[anchor_idx], codes[partner_idx]], axis=0))
+                paired_labels.append(labels[anchor_idx])
+                pair_labels.append(0.0)   # always a negative pair -- different digits
+                partner_labels.append(labels[partner_idx])
 
     paired_codes = np.stack(paired_codes, axis=0).astype(np.float32)
     paired_labels = np.array(paired_labels, dtype=np.int64)
@@ -940,6 +975,11 @@ def main():
                               "digit-separation signal alongside the rotation one. Omit to skip (default).")
     parser.add_argument("--digit-pairs-per-combo", type=int, default=50,
                          help="How many cross-digit pairs to draw per --digit-pairs combination. Default 50.")
+    parser.add_argument("--hard-negative-mining", action="store_true",
+                         help="For --digit-pairs: instead of random anchor/partner draws, select the pairs "
+                              "that are CLOSEST together in embedding space -- i.e. the specific examples the "
+                              "feature extractor is actually confusing, rather than random (mostly already-easy) "
+                              "pairs. Concentrates pairwise supervision exactly where it's needed.")
     parser.add_argument("--data-source", type=str, default="supervised", choices=["supervised", "unsupervised"],
                          help="'supervised' (default): trains digit + rotation + full-class heads -- guarantees "
                               "cluster separation by construction, cannot merge visually-similar classes. "
@@ -1087,6 +1127,7 @@ def main():
             digit_pairs=parsed_digit_pairs,
             pairs_per_combo=args.digit_pairs_per_combo,
             seed=args.seed + 2,   # different seed stream than rotation pairs
+            hard_negative_mining=args.hard_negative_mining,
         )
         print(f"Adding {len(cd_pair_labels)} cross-digit negative pairs for {parsed_digit_pairs} "
               f"to the paired dataset (rotation ignored for these).")
