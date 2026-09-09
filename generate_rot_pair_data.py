@@ -425,6 +425,7 @@ def generate_mnist_rotation_embeddings_unsupervised(
     val_fraction=0.15,
     l2_normalize_embed=True,
     aug_consistency_weight=0.0,
+    var_weight=1.0,
     device=None,
 ):
     """Genuinely unsupervised alternative to generate_mnist_rotation_embeddings().
@@ -474,6 +475,28 @@ def generate_mnist_rotation_embeddings_unsupervised(
     directly rewards grouping similar content rather than only pixel
     fidelity. 0 (default) = pure reconstruction, unchanged from before;
     try 0.5-1.0 if silhouette scores are weak.
+
+    IMPORTANT -- collapse risk: a plain MSE consistency term with no
+    counterbalancing pressure has a trivial degenerate solution: map
+    EVERY image to (nearly) the same point in embedding space. That
+    perfectly minimizes "two augmented views should be close together"
+    while carrying zero information -- this is the classic failure mode
+    of Siamese/consistency-based self-supervised objectives (the reason
+    BYOL/SimSiam/VICReg exist). Symptoms: silhouette scores go strongly
+    negative (worse than aug_consistency_weight=0), and val_recon_loss
+    diverges upward over training even as train_recon_loss keeps
+    decreasing. var_weight (below) exists specifically to prevent this.
+
+    var_weight: adds a variance-regularization term (VICReg-style) that
+    penalizes each embedding dimension for having low variance ACROSS the
+    batch -- i.e. it directly punishes the trivial collapse solution,
+    since a collapsed embedding has near-zero variance in every
+    dimension. Only active when aug_consistency_weight > 0 (there's
+    nothing to collapse from with pure reconstruction alone). Default 1.0
+    -- keep this on whenever aug_consistency_weight > 0. Raise it if you
+    still see the collapse symptoms above; can lower it if it seems to be
+    fighting the consistency term too hard (consistency_loss staying high
+    and not decreasing at all).
 
     Returns the same 5-tuple as generate_mnist_rotation_embeddings(), so
     every downstream pairing function works unchanged on top of it.
@@ -634,12 +657,24 @@ def generate_mnist_rotation_embeddings_unsupervised(
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=ae_epochs)
     aug_rng = torch.Generator().manual_seed(seed)
 
+    # target per-dimension std for the variance-regularization term. Since
+    # embeddings are L2-normalized to unit norm (when l2_normalize_embed is
+    # True), a well-spread-out embedding on the unit hypersphere has
+    # per-dimension std on the order of 1/sqrt(embed_dim), not 1.0 (the
+    # value used in the original, un-normalized VICReg formulation).
+    target_std = (1.0 / (embed_dim ** 0.5)) if l2_normalize_embed else 1.0
+
+    def variance_loss(e):
+        std = torch.sqrt(e.var(dim=0) + 1e-4)
+        return Fnn.relu(target_std - std).mean()
+
     print(f"Training convolutional autoencoder ({ae_epochs} epochs, embed_dim={embed_dim}, "
-          f"l2_normalize={l2_normalize_embed}, aug_consistency_weight={aug_consistency_weight}) "
+          f"l2_normalize={l2_normalize_embed}, aug_consistency_weight={aug_consistency_weight}, "
+          f"var_weight={var_weight if aug_consistency_weight > 0 else 'n/a (no consistency term)'}) "
           f"-- NO labels of any kind used in training...")
     for epoch in range(ae_epochs):
         model.train()
-        total_recon_loss, total_consistency_loss, n_seen = 0.0, 0.0, 0
+        total_recon_loss, total_consistency_loss, total_var_loss, n_seen = 0.0, 0.0, 0.0, 0
         for (xb,) in train_dl:
             xb = xb.to(device)
             optimizer.zero_grad()
@@ -654,6 +689,13 @@ def generate_mnist_rotation_embeddings_unsupervised(
                 consistency_loss = Fnn.mse_loss(e1, e2)
                 loss = loss + aug_consistency_weight * consistency_loss
                 total_consistency_loss += consistency_loss.item() * len(xb)
+
+                if var_weight > 0:
+                    # anti-collapse pressure -- penalizes low variance across
+                    # the batch in either augmented view's embeddings
+                    v_loss = 0.5 * (variance_loss(e1) + variance_loss(e2))
+                    loss = loss + var_weight * v_loss
+                    total_var_loss += v_loss.item() * len(xb)
 
             loss.backward()
             optimizer.step()
@@ -674,6 +716,8 @@ def generate_mnist_rotation_embeddings_unsupervised(
                     f"val_recon_loss={(val_loss/val_seen if val_seen else float('nan')):.5f}")
         if aug_consistency_weight > 0:
             log_line += f" consistency_loss={total_consistency_loss/n_seen:.5f}"
+            if var_weight > 0:
+                log_line += f" var_loss={total_var_loss/n_seen:.5f}"
         print(log_line)
 
     model.eval()
@@ -1029,7 +1073,14 @@ def main():
                          "Self-supervised consistency term: encourages two independently-augmented views "
                          "(small translation, brightness/contrast jitter, noise -- NOT rotation) of the same "
                          "image to land close together in embedding space. Never uses digit/rotation labels. "
-                         "0 (default) = pure reconstruction. Try 0.5-1.0 if silhouette scores are weak.")
+                         "0 (default) = pure reconstruction. Try 0.5-1.0 if silhouette scores are weak. "
+                         "WARNING: without --var-weight this can COLLAPSE (all embeddings converge to nearly "
+                         "the same point) -- symptoms are silhouette going strongly negative and val_recon_loss "
+                         "diverging upward. Keep --var-weight > 0 (default 1.0) whenever this is > 0.")
+    parser.add_argument("--var-weight", type=float, default=1.0, help="[unsupervised only, only active when "
+                         "--aug-consistency-weight > 0]. Variance-regularization (VICReg-style) term that "
+                         "penalizes low embedding variance across the batch -- prevents the consistency term "
+                         "from collapsing all embeddings to the same point. Default 1.0 -- keep this on.")
     parser.add_argument("--mnist-root", type=str, default="./mnist_data")
     parser.add_argument("--seed", type=int, default=45)
     parser.add_argument("--out-dir", type=str, required=True)
@@ -1081,6 +1132,7 @@ def main():
             ae_batch_size=args.ae_batch_size,
             val_fraction=args.ae_val_fraction,
             aug_consistency_weight=args.aug_consistency_weight,
+            var_weight=args.var_weight,
             l2_normalize_embed=not args.no_l2_normalize,
         )
     else:
